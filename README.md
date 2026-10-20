@@ -2,7 +2,7 @@
 
 Um mapa interativo para começar e crescer em qualidade de software, com IA no dia a dia desde o primeiro passo.
 
-**Versão 0.1** · funciona direto no navegador, sem instalar nada.
+**Versão 0.2** (em construção) · funciona direto no navegador, sem instalar nada.
 
 ## O que tem
 
@@ -10,6 +10,7 @@ Um mapa interativo para começar e crescer em qualidade de software, com IA no d
 | --- | --- |
 | Mapa | Mapa mental da trilha em 5 etapas e 70 tópicos, com as tecnologias de cada um, busca, anotações e progresso |
 | Rota de estudo | A mesma trilha em sequência, com checklist e prévia das anotações |
+| Minimapas | Um mapa mental por área (Segurança e, em breve, outras) com fundamentos, o que estudar, ferramentas, onde praticar e os tópicos da trilha ligados |
 | IA no dia a dia | Onde a IA ajuda, MCP explicado, servidores MCP úteis para QA, agentes de teste do Playwright, regras de ouro e exercícios |
 | Prompts | Biblioteca de prompts para QA, com filtro por categoria e botão de copiar |
 | Biblioteca | Artigos, documentação, sites para praticar, repositórios, cursos, canais, roadmaps e comunidades, com filtros por tipo, etapa e tema |
@@ -26,6 +27,11 @@ Cada tópico abre com:
 O progresso (tópicos dominados, checklists, exercícios e projetos concluídos) e as anotações ficam salvos no navegador de cada pessoa.
 
 ## Versões
+
+**v0.2** (em construção)
+
+- Aba Minimapas: um mapa mental por área, começando por Segurança
+- Código separado por responsabilidade em `js/core/` e `js/pages/`
 
 **v0.1** (primeira versão publicada)
 
@@ -69,24 +75,39 @@ Abra o arquivo `index.html` no navegador. Pronto.
 3. Em **Source**, escolha **Deploy from a branch**, branch `main`, pasta `/ (root)`, e salve.
 4. Em alguns minutos o site estará em `https://SEU-USUARIO.github.io/jornada-qa/`.
 
-Dá para abrir uma aba direto pelo endereço: `#mapa`, `#rota`, `#ia`, `#prompts`, `#biblioteca` ou `#projetos`.
+Dá para abrir uma aba direto pelo endereço: `#mapa`, `#rota`, `#minimapas`, `#minimapas/seguranca`, `#ia`, `#prompts`, `#biblioteca` ou `#projetos`.
 
 ## Estrutura
 
 ```
 jornada-qa/
-├── index.html          estrutura da página e das abas
-├── css/styles.css      visual (claro e escuro)
-├── js/app.js           comportamento: mapa, abas, filtros, progresso
-└── data/               todo o conteúdo, separado do layout
-    ├── trilha.js       etapas e tópicos do mapa
-    ├── ia.js           aba IA no dia a dia
-    ├── prompts.js      biblioteca de prompts
-    ├── biblioteca.js   links da biblioteca e projetos
-    └── personalizado.js conteúdo editado pela página (substitui o padrão quando preenchido)
+├── index.html              estrutura da página e ordem dos scripts
+├── css/styles.css          visual (claro e escuro)
+├── data/                   CONTEÚDO: tudo o que se estuda, separado do código
+│   ├── trilha.js           etapas e tópicos do mapa e da rota
+│   ├── ia.js               aba IA no dia a dia
+│   ├── prompts.js          biblioteca de prompts
+│   ├── biblioteca.js       links da biblioteca e projetos
+│   ├── minimapas/          um arquivo por área (seguranca.js, …)
+│   └── personalizado.js    conteúdo editado pela página (substitui o padrão quando preenchido)
+└── js/                     CÓDIGO: como o conteúdo aparece e se comporta
+    ├── core/               base usada por todas as páginas
+    │   ├── util.js         utilitários, armazenamento local, avisos, desenho em SVG
+    │   ├── estado.js       conteúdo carregado, progresso, anotações, checklists
+    │   └── interface.js    tema, menu lateral, gaveta, botão copiar
+    ├── pages/              um arquivo por aba ou recurso
+    │   ├── mapa.js         mapa mental, busca, pan e zoom
+    │   ├── rota.js         rota de estudo
+    │   ├── topico.js       detalhes do tópico e editor
+    │   ├── minimapas.js    minimapas por área
+    │   ├── ia.js, prompts.js, biblioteca.js, projetos.js
+    │   └── dados.js        backup, importação e publicação
+    └── app.js              navegação entre abas e início (carregado por último)
 ```
 
-Os dados ficam em arquivos `.js`, e não `.json`, para o site continuar funcionando quando aberto direto do computador (o navegador bloqueia a leitura de `.json` nesse caso).
+**Regra da casa:** `data/` só tem conteúdo e `js/` só tem código. Para mudar o que se estuda, edite `data/`; para mudar como aparece, edite `js/` ou `css/`.
+
+Os arquivos de `js/` compartilham funções pelo objeto `JQA.app`, e a ordem dos `<script>` no `index.html` importa: `core/` primeiro, `pages/` depois e `app.js` no fim. Não usamos módulos ES (`import`/`export`) nem `.json` porque o navegador bloqueia os dois quando o site é aberto direto do computador, sem servidor.
 
 ## Editar direto nos arquivos
 
@@ -117,6 +138,24 @@ Os dados ficam em arquivos `.js`, e não `.json`, para o site continuar funciona
 | `x` | Exercício prático |
 | `lab` | Laboratório para copiar (opcional) |
 | `cc` | Critérios de conclusão (lista) |
+
+**Um minimapa** (`data/minimapas/<area>.js`): copie `seguranca.js`, troque o conteúdo e acrescente o `<script>` no `index.html`, junto dos outros minimapas.
+
+```js
+(JQA.MINIMAPAS = JQA.MINIMAPAS || []).push({
+  id:"performance", t:"Performance", icon:"target",
+  d:"Por que a área importa.", comeco:"Por onde começar.", carreira:"Onde a área leva.",
+  ramos:[
+    {k:"fund",   itens:[{t:"Percentis", tag:"Conceito", d:"Explicação.", l:[["Texto","https://...","o que ler"]]}]},
+    {k:"est",    itens:[{t:"Teste de carga", tag:"Iniciante", d:"...", x:"Prática sugerida."}]},
+    {k:"ferr",   itens:[{t:"k6", tag:"Carga", q:"Quando usar.", lab:`k6 run teste.js`}]},
+    {k:"prat",   itens:[{t:"QuickPizza", tag:"App", d:"..."}]},
+    {k:"trilha", itens:[{topico:"e3-performance-basica"}]}
+  ]
+});
+```
+
+Tipos de ramo: `fund` (Fundamentos), `est` (O que estudar, em ordem), `ferr` (Ferramentas), `prat` (Onde praticar) e `trilha` (tópicos da trilha, pelo id). O id de um tópico é a etapa mais o título sem acentos, por exemplo `e3-performance-basica`.
 
 **Um item da biblioteca** (`data/biblioteca.js`):
 
