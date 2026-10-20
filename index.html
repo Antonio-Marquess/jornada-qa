@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/styles.css?v=0.3">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -40,6 +40,10 @@
     <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></symbol>
     <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></symbol>
     <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M12 3v7M8.5 6.5 12 3l3.5 3.5M12 21v-7M8.5 17.5 12 21l3.5-3.5M5 12h14"/></symbol>
+    <symbol id="i-collapse" viewBox="0 0 24 24"><path d="M12 3v6M8.5 5.5 12 9l3.5-3.5M12 21v-6M8.5 18.5 12 15l3.5 3.5M5 12h14"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></symbol>
+    <symbol id="i-sib" viewBox="0 0 24 24"><rect x="4" y="4" width="11" height="6" rx="2"/><rect x="4" y="14" width="11" height="6" rx="2" stroke-dasharray="2.5 2"/><path d="M19 14v6M16 17h6"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
   </defs>
 </svg>
@@ -85,7 +89,6 @@
           <svg><use href="#i-search"/></svg>
           <input id="q" type="search" placeholder="Buscar: Playwright, MCP, SQL…" aria-label="Buscar tecnologia ou tema na trilha">
         </label>
-        <label class="switch" id="techToggle"><input type="checkbox" id="showTech" checked><span aria-hidden="true"></span>Tecnologias</label>
         <button class="btn primary" id="newTopic"><svg><use href="#i-plus"/></svg>Novo tópico</button>
       </div>
     </header>
@@ -94,8 +97,11 @@
       <section class="view" id="v-mapa" aria-label="Mapa mental da trilha">
         <svg id="svg" role="img" aria-label="Mapa mental das etapas da carreira em QA"></svg>
         <div class="legend" id="legend" aria-hidden="true"></div>
-        <p class="maphint">Arraste para mover, use a roda do mouse para zoom e clique num tópico para abrir</p>
+        <div class="focusbar" id="focusBar" hidden></div>
+        <p class="maphint">Clique para selecionar · duplo clique edita · <b>Tab</b> filho · <b>Enter</b> irmão · arraste para mover</p>
         <div class="zoom">
+          <button id="zexpand" aria-label="Abrir todos os ramos" title="Abrir todos os ramos"><svg><use href="#i-expand"/></svg></button>
+          <button id="zcollapse" aria-label="Recolher os ramos" title="Recolher os ramos"><svg><use href="#i-collapse"/></svg></button>
           <button id="zin" aria-label="Aproximar"><svg><use href="#i-plus"/></svg></button>
           <button id="zout" aria-label="Afastar"><svg><use href="#i-minus"/></svg></button>
           <button id="zfit" aria-label="Centralizar mapa"><svg><use href="#i-fit"/></svg></button>
@@ -123,7 +129,11 @@
           <div class="minimap" id="miniMapBox">
             <svg id="msvg" role="img" aria-label="Minimapa da área"></svg>
             <div class="legend" id="miniLegend" aria-hidden="true"></div>
+            <div class="focusbar" id="mFocusBar" hidden></div>
+            <p class="maphint">Clique para selecionar · duplo clique edita · <b>Tab</b> filho · <b>Enter</b> irmão · arraste para mover</p>
             <div class="zoom">
+              <button id="mzexpand" aria-label="Abrir todos os ramos" title="Abrir todos os ramos"><svg><use href="#i-expand"/></svg></button>
+              <button id="mzcollapse" aria-label="Recolher os ramos" title="Recolher os ramos"><svg><use href="#i-collapse"/></svg></button>
               <button id="mzin" aria-label="Aproximar"><svg><use href="#i-plus"/></svg></button>
               <button id="mzout" aria-label="Afastar"><svg><use href="#i-minus"/></svg></button>
               <button id="mzfit" aria-label="Centralizar mapa"><svg><use href="#i-fit"/></svg></button>
@@ -153,27 +163,28 @@
 <input type="file" id="importFile" accept="application/json,.json" hidden>
 
 <!-- conteúdo -->
-<script src="data/trilha.js"></script>
-<script src="data/ia.js"></script>
-<script src="data/prompts.js"></script>
-<script src="data/biblioteca.js"></script>
-<script src="data/minimapas/seguranca.js"></script>
-<script src="data/personalizado.js"></script>
+<script src="data/trilha.js?v=0.3"></script>
+<script src="data/ia.js?v=0.3"></script>
+<script src="data/prompts.js?v=0.3"></script>
+<script src="data/biblioteca.js?v=0.3"></script>
+<script src="data/minimapas/seguranca.js?v=0.3"></script>
+<script src="data/personalizado.js?v=0.3"></script>
 <!-- base comum -->
-<script src="js/core/util.js"></script>
-<script src="js/core/estado.js"></script>
-<script src="js/core/interface.js"></script>
+<script src="js/core/util.js?v=0.3"></script>
+<script src="js/core/estado.js?v=0.3"></script>
+<script src="js/core/interface.js?v=0.3"></script>
+<script src="js/core/mindmap.js?v=0.3"></script>
 <!-- páginas -->
-<script src="js/pages/mapa.js"></script>
-<script src="js/pages/rota.js"></script>
-<script src="js/pages/topico.js"></script>
-<script src="js/pages/minimapas.js"></script>
-<script src="js/pages/ia.js"></script>
-<script src="js/pages/prompts.js"></script>
-<script src="js/pages/biblioteca.js"></script>
-<script src="js/pages/projetos.js"></script>
-<script src="js/pages/dados.js"></script>
+<script src="js/pages/mapa.js?v=0.3"></script>
+<script src="js/pages/rota.js?v=0.3"></script>
+<script src="js/pages/topico.js?v=0.3"></script>
+<script src="js/pages/minimapas.js?v=0.3"></script>
+<script src="js/pages/ia.js?v=0.3"></script>
+<script src="js/pages/prompts.js?v=0.3"></script>
+<script src="js/pages/biblioteca.js?v=0.3"></script>
+<script src="js/pages/projetos.js?v=0.3"></script>
+<script src="js/pages/dados.js?v=0.3"></script>
 <!-- navegação e início: sempre por último -->
-<script src="js/app.js"></script>
+<script src="js/app.js?v=0.3"></script>
 </body>
 </html>

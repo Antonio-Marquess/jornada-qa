@@ -18,6 +18,7 @@ function openPanel(t){
     <div class="actions">
       <button class="btn${on ? "" : " primary"}" id="pDone" aria-pressed="${on}">${on ? "Dominado" : "Marcar como dominado"}</button>
       <button class="btn" id="pEdit">${ico("pen")}Editar</button>
+      <button class="btn" id="pFocus">${ico("map")}Ver no mapa</button>
     </div>
     ${t.d ? `<p style="margin:0">${esc(t.d)}</p>` : ""}
     <dl class="facts"><div><dt>Profundidade</dt><dd>${esc(t.p)}</dd></div><div><dt>Prioridade</dt><dd>${esc(t.pr)}</dd></div></dl>
@@ -47,6 +48,7 @@ function openPanel(t){
   pBody.querySelectorAll("#pTech [data-k]").forEach(b => b.onclick = () => { closePanel(); setQuery(b.dataset.k); if(!["mapa","rota"].includes(A.curTab)) location.hash = "mapa"; });
   $("#pDone").onclick = () => { done.has(t.id) ? done.delete(t.id) : done.add(t.id); store.set("jqa-trilha", [...done]); updateMeter(); renderMap(); renderRoute(); refreshMini(); openPanel(t); };
   $("#pEdit").onclick = () => openEditor(t);
+  $("#pFocus").onclick = () => { closePanel(); A.focusTopic(t.id); };
   pBody.querySelectorAll(".ticks input").forEach(cb => cb.onchange = () => {
     const set = new Set(A.checks[t.id] || []); cb.checked ? set.add(cb.dataset.tk) : set.delete(cb.dataset.tk);
     if(set.size) A.checks[t.id] = [...set]; else delete A.checks[t.id];

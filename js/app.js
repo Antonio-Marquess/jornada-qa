@@ -29,7 +29,7 @@ function show(hash){
   $("#pageTitle").textContent = title;
   document.title = `${title} · Jornada QA`;
   const trail = tab === "mapa" || tab === "rota";
-  $("#toolbar").hidden = !trail; $("#techToggle").hidden = tab !== "mapa";
+  $("#toolbar").hidden = !trail;
   if(tab === "ia" && !A.rendered.ia){ renderIA(); A.rendered.ia = 1; }
   if(tab === "prompts" && !A.rendered.prompts){ renderPrompts(); A.rendered.prompts = 1; }
   if(tab === "biblioteca" && !A.rendered.lib){ renderLib(); A.rendered.lib = 1; }
@@ -38,6 +38,9 @@ function show(hash){
 }
 window.addEventListener("hashchange", () => show(location.hash.slice(1)));
 
+
+/* depois de desfazer: redesenha tudo que mostra conteúdo */
+A.refreshAll = () => { A.refreshTrail(); A.refreshMini(); if(A.curTab === "minimapas") show(location.hash.slice(1)); };
 
 /* ---------- início ---------- */
 updateMeter(); renderLegend(); renderMap(); renderRoute();

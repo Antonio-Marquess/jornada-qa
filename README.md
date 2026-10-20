@@ -2,15 +2,15 @@
 
 Um mapa interativo para começar e crescer em qualidade de software, com IA no dia a dia desde o primeiro passo.
 
-**Versão 0.2** (em construção) · funciona direto no navegador, sem instalar nada.
+**Versão 0.3** · funciona direto no navegador, sem instalar nada.
 
 ## O que tem
 
 | Aba | Conteúdo |
 | --- | --- |
-| Mapa | Mapa mental da trilha em 5 etapas e 70 tópicos, com as tecnologias de cada um, busca, anotações e progresso |
+| Mapa | Mapa mental da trilha: 5 etapas, 70 tópicos e, dentro de cada tópico, o que estudar, tecnologias e materiais. Ramos abrem e fecham, duplo clique foca |
 | Rota de estudo | A mesma trilha em sequência, com checklist e prévia das anotações |
-| Minimapas | Um mapa mental por área (Segurança e, em breve, outras) com fundamentos, o que estudar, ferramentas, onde praticar e os tópicos da trilha ligados |
+| Minimapas | Um mapa mental por área (Segurança e, em breve, outras) com fundamentos, o que estudar, ferramentas, onde praticar e os tópicos da trilha ligados. Também os seus próprios mapas, criados do zero |
 | IA no dia a dia | Onde a IA ajuda, MCP explicado, servidores MCP úteis para QA, agentes de teste do Playwright, regras de ouro e exercícios |
 | Prompts | Biblioteca de prompts para QA, com filtro por categoria e botão de copiar |
 | Biblioteca | Artigos, documentação, sites para praticar, repositórios, cursos, canais, roadmaps e comunidades, com filtros por tipo, etapa e tema |
@@ -28,7 +28,17 @@ O progresso (tópicos dominados, checklists, exercícios e projetos concluídos)
 
 ## Versões
 
-**v0.2** (em construção)
+**v0.3**
+
+- Mapa mental de verdade, no Mapa e nos Minimapas: ramos que abrem e fecham (botão **+N** / **−**), vários níveis (tópico › o que estudar, tecnologias e materiais), foco, abrir tudo e recolher tudo
+- Edição direto no mapa, como no XMind e no MindMeister: clique seleciona e mostra uma barra de ações (detalhes, novo filho, novo irmão, editar, focar, excluir); duplo clique ou F2 edita o texto; arrastar um nó para outro o move de lugar
+- Teclado: **Tab** cria filho, **Enter** cria irmão, **F2** edita, **Delete** exclui, **Espaço** abre ou fecha, **F** foca, **O** abre detalhes, setas navegam, **Ctrl+Z** desfaz, **Esc** sai
+- Minimapas editáveis: criar ramos e itens, subitens em quantos níveis quiser, editar textos e detalhes (explicação, materiais, prática, comandos)
+- **Meus mapas:** crie mapas mentais seus, do zero, na aba Minimapas
+- Marcar o que estudou direto no mapa; a busca abre os ramos onde há resultado e aproxima o mapa deles
+- Motor do mapa mental reaproveitável em `js/core/mindmap.js`
+
+**v0.2**
 
 - Aba Minimapas: um mapa mental por área, começando por Segurança
 - Código separado por responsabilidade em `js/core/` e `js/pages/`
@@ -45,7 +55,7 @@ O progresso (tópicos dominados, checklists, exercícios e projetos concluídos)
 Não existe modo de edição: tudo se edita no lugar, como no Notion ou no Trello.
 
 - **Rota de estudo:** passe o mouse num tópico e use os ícones de editar ou excluir. **Adicionar tópico** fica no fim de cada etapa, e o ícone ao lado do nome da etapa muda nome e objetivo.
-- **Mapa:** clique num tópico para abrir os detalhes e use **Editar**. O botão **Novo tópico** fica no topo.
+- **Mapa e Minimapas:** clique num nó para selecionar e use a barra que aparece em cima dele, ou o teclado (Tab, Enter, F2, Delete, Ctrl+Z). Duplo clique edita o texto e arrastar move o nó. Os detalhes completos de um tópico (descrição, laboratório, critérios) ficam em **Detalhes › Editar**.
 - **Prompts e Biblioteca:** **Novo prompt** e **Adicionar link** no topo; editar e excluir aparecem ao passar o mouse.
 - **Anotações:** cada tópico tem um campo "Minhas anotações". Links escritos ali viram links clicáveis.
 
@@ -94,7 +104,8 @@ jornada-qa/
     ├── core/               base usada por todas as páginas
     │   ├── util.js         utilitários, armazenamento local, avisos, desenho em SVG
     │   ├── estado.js       conteúdo carregado, progresso, anotações, checklists
-    │   └── interface.js    tema, menu lateral, gaveta, botão copiar
+    │   ├── interface.js    tema, menu lateral, gaveta, botão copiar
+    │   └── mindmap.js      mapa mental: abrir e fechar ramos, níveis, foco, pan e zoom
     ├── pages/              um arquivo por aba ou recurso
     │   ├── mapa.js         mapa mental, busca, pan e zoom
     │   ├── rota.js         rota de estudo
@@ -154,6 +165,8 @@ Os arquivos de `js/` compartilham funções pelo objeto `JQA.app`, e a ordem dos
   ]
 });
 ```
+
+Um item pode ter `filhos:[...]` (outros itens), e seus materiais (`l`) aparecem como ramos dentro dele no mapa.
 
 Tipos de ramo: `fund` (Fundamentos), `est` (O que estudar, em ordem), `ferr` (Ferramentas), `prat` (Onde praticar) e `trilha` (tópicos da trilha, pelo id). O id de um tópico é a etapa mais o título sem acentos, por exemplo `e3-performance-basica`.
 

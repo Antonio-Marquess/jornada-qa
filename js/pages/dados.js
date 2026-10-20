@@ -24,7 +24,7 @@ function openData(){
       <div class="dataitem"><b>Exportar backup</b><p>Baixa um arquivo .json com conteúdo, anotações e progresso.</p><button class="btn" id="exportBtn">Exportar</button></div>
       <div class="dataitem"><b>Importar backup</b><p>Carrega um backup em outro navegador ou computador.</p><button class="btn" id="importBtn">Importar</button></div>
       <div class="dataitem"><b>Publicar no GitHub</b><p>Gera o personalizado.js. Substitua o arquivo data/personalizado.js do repositório para todos verem suas edições.</p><button class="btn primary" id="publishBtn">Gerar arquivo</button></div>
-      <div class="dataitem"><b>Restaurar original</b><p>Descarta as edições de conteúdo deste navegador. Anotações e progresso continuam.</p><button class="btn danger" id="resetBtn">Restaurar</button></div>
+      <div class="dataitem"><b>Restaurar original</b><p>Descarta as edições de conteúdo deste navegador. Seus mapas próprios, anotações e progresso continuam.</p><button class="btn danger" id="resetBtn">Restaurar</button></div>
     </div>`;
   $("#exportBtn").onclick = () => {
     const data = {app:"jornada-qa", v:1, exportado:new Date().toISOString(), conteudo:A.C, notas:A.notes,
@@ -37,8 +37,9 @@ function openData(){
     download("personalizado.js", js, "text/javascript"); toast("Arquivo gerado. Substitua data/personalizado.js no repositório.");
   };
   $("#resetBtn").onclick = () => {
-    if(!confirm("Restaurar o conteúdo original? Suas edições de tópicos, prompts e biblioteca neste navegador serão descartadas. Anotações e progresso continuam.")) return;
-    store.del("jqa-conteudo"); A.C = normalize(J.OVERRIDE ? clone(J.OVERRIDE) : defaults());
+    if(!confirm("Restaurar o conteúdo original? Suas edições de tópicos, minimapas, prompts e biblioteca neste navegador serão descartadas. Seus mapas próprios, anotações e progresso continuam.")) return;
+    const meus = (A.C.minis || []).filter(m => m.custom); store.del("jqa-conteudo"); A.C = normalize(J.OVERRIDE ? clone(J.OVERRIDE) : defaults());
+    if(meus.length){ A.C.minis.push(...meus); saveContent(); }
     rerenderAll(); toast("Conteúdo original restaurado.");
   };
 }

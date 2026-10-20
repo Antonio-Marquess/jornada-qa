@@ -117,8 +117,39 @@ svg use{pointer-events:none}
 .zoom button{width:40px;height:40px;display:grid;place-items:center;border:0;background:none;cursor:pointer;color:var(--text)}
 .zoom button + button{border-top:1px solid var(--border)}
 .zoom button:hover{background:var(--surface-2)}
-.n-center text{font-family:"Bricolage Grotesque",sans-serif;font-weight:800}
-.n-stage text{font-family:"Bricolage Grotesque",sans-serif;font-weight:700}
+.node text{pointer-events:none}
+.node.static{cursor:default}
+.node.sel .box{stroke:var(--brand);stroke-width:3;filter:drop-shadow(0 0 0 var(--brand)) drop-shadow(0 4px 10px rgba(31,79,216,.25))}
+.n-d1.sel .box,.n-d0.sel .box{stroke:var(--hl);stroke-width:3}
+.node.ghost{opacity:.75;pointer-events:none}
+.node.drop .box{stroke:var(--hl);stroke-width:4}
+.node.draggable{cursor:grab}
+.chk{cursor:pointer}
+.mmbar{position:absolute;transform:translate(-50%,-100%);display:flex;gap:2px;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-lg);padding:3px;z-index:5;white-space:nowrap}
+.mmbar.below{transform:translate(-50%,0)}
+.mmbar[hidden]{display:none}
+.mmbar button{display:inline-flex;align-items:center;gap:6px;height:32px;min-width:32px;justify-content:center;padding:0 8px;border:0;background:none;border-radius:7px;cursor:pointer;color:var(--text);font:700 .85rem "Atkinson Hyperlegible",sans-serif}
+.mmbar button:hover{background:var(--surface-2)}
+.mmbar button.danger{color:var(--danger)}
+.mmbar button:first-child span{color:var(--brand)}
+.mmbar svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.mmedit{position:absolute;transform:translateY(-50%);height:34px;padding:0 10px;border:2px solid var(--brand);border-radius:8px;background:var(--surface);color:var(--text);font:400 14px "Atkinson Hyperlegible",sans-serif;box-shadow:var(--shadow-lg);z-index:6;outline:none}
+button.minicard{text-align:left;font:inherit;cursor:pointer}
+.minicard.newmap{border-style:dashed;box-shadow:none;background:none}
+.minicard.newmap:hover{border-color:var(--brand)}
+#miniHome h3{margin-top:28px}
+.bubble{cursor:pointer}
+.bubble:hover rect{filter:brightness(1.12)}
+.n-d0 .box{filter:drop-shadow(0 6px 16px rgba(31,79,216,.28))}
+.focusbar{position:absolute;left:16px;bottom:52px;display:flex;align-items:center;flex-wrap:wrap;gap:6px;max-width:calc(100% - 100px);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);box-shadow:var(--shadow-sm);padding:6px 8px 6px 12px;font-size:.88rem;z-index:2}
+.focusbar[hidden]{display:none}
+.fb-label{font-weight:700;color:var(--muted);text-transform:uppercase;font-size:.72rem;letter-spacing:.05em;margin-right:2px}
+.fb-crumb{border:0;background:none;padding:3px 6px;border-radius:6px;cursor:pointer;color:var(--brand);font-weight:700}
+.fb-crumb:hover{background:var(--surface-2)}
+.fb-crumb[aria-current]{color:var(--text);cursor:default}
+.fb-sep{color:var(--muted)}
+.focusbar .btn{margin-left:6px}
+.maphint b{color:var(--text)}
 .node{cursor:pointer}
 .node:focus{outline:none}
 .node:focus-visible .box{stroke:var(--brand);stroke-width:3}

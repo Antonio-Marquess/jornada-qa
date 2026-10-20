@@ -7,13 +7,30 @@ const COLORS = ["--e1","--e2","--e3","--e4","--e5"];
 function defaults(){
   return {v:2, stages:clone(J.STAGES), topics:clone(J.TOPICS),
     prompts:clone(J.PROMPTS).map(p => ({id:uid("p"), ...p})),
-    lib:clone(J.LIB).map(i => ({id:uid("l"), ...i}))};
+    lib:clone(J.LIB).map(i => ({id:uid("l"), ...i})),
+    minis:clone(J.MINIMAPAS || []), mapas:[]};
+}
+/* ids estáveis dos minimapas: ramos e itens guardam o próprio id, então editar o texto não perde o progresso */
+function idsMini(m){
+  const seen = new Set();
+  const fix = (it, pref) => {
+    if(it.topico) return;
+    if(!it.id){ let id = pref + ":" + J.slug(it.t || "item"), k = 2; while(seen.has(id)) id = pref + ":" + J.slug(it.t || "item") + "-" + k++; it.id = id; }
+    seen.add(it.id); (it.filhos || []).forEach(f => fix(f, m.id));
+  };
+  m.ramos.forEach((r, i) => { r.id = r.id || m.id + ":r:" + (r.k || i); r.itens = r.itens || []; r.itens.forEach(it => fix(it, m.id)); });
 }
 function normalize(c){
   c.stages.forEach((s, i) => { s.color = s.color || COLORS[i % COLORS.length]; });
   c.topics.forEach(t => { t.id = t.id || uid("t"); t.tech = t.tech || []; t.l = t.l || []; t.est = t.est || []; t.cc = t.cc || []; t.lab = t.lab || ""; });
   c.prompts.forEach(p => { p.id = p.id || uid("p"); });
   c.lib.forEach(i => { i.id = i.id || uid("l"); });
+  /* minimapas: os que vêm dos arquivos entram sozinhos, menos os que a pessoa excluiu */
+  c.minis = c.minis || [];
+  const tem = new Set(c.minis.map(m => m.id)), fora = new Set(c.minisExcluidos || []);
+  (J.MINIMAPAS || []).forEach(m => { if(!tem.has(m.id) && !fora.has(m.id)) c.minis.push(clone(m)); });
+  c.minis.forEach(idsMini);
+  c.mapas = c.mapas || [];
   return c;
 }
 /* Conteúdo salvo numa versão anterior: completa os tópicos com os campos novos
@@ -41,6 +58,14 @@ A.C = normalize(upgrade(store.get("jqa-conteudo", null)) || (J.OVERRIDE ? clone(
 const isLocal = () => !!store.get("jqa-conteudo", null);
 function saveContent(){ if(!store.set("jqa-conteudo", A.C)) toast("Não foi possível salvar neste navegador."); }
 
+/* desfazer: guarda uma cópia do conteúdo antes de cada mudança feita no mapa */
+const historico = [];
+function snapshot(){ historico.push(JSON.stringify(A.C)); if(historico.length > 40) historico.shift(); }
+function undo(){
+  const s = historico.pop(); if(!s){ toast("Nada para desfazer."); return false; }
+  A.C = normalize(JSON.parse(s)); saveContent(); A.refreshAll?.(); toast("Desfeito."); return true;
+}
+
 const done = new Set(store.get("jqa-trilha", []));
 const doneProj = new Set(store.get("jqa-projetos", []));
 const doneEx = new Set(store.get("jqa-exercicios-ia", []));
@@ -60,5 +85,5 @@ function updateMeter(){
   $("#count").textContent = `${n} de ${A.C.topics.length} tópicos dominados`;
 }
 
-Object.assign(A, {COLORS, defaults, normalize, upgrade, isLocal, saveContent, done, doneProj, doneEx, stageOf, stageLabel, DEPTHS, PRIOS, updateMeter});
+Object.assign(A, {COLORS, defaults, normalize, upgrade, isLocal, saveContent, snapshot, undo, done, doneProj, doneEx, stageOf, stageLabel, DEPTHS, PRIOS, updateMeter});
 })(JQA.app);
