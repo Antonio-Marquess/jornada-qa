@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=0.3">
+<link rel="stylesheet" href="css/styles.css?v=0.4">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -35,6 +35,7 @@
     <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18"/></symbol>
     <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></symbol>
     <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></symbol>
+    <symbol id="i-career" viewBox="0 0 24 24"><path d="M12 21v-8.5M12 12.5 6.5 6.5M12 12.5l5.5-6"/><circle cx="5.5" cy="4.8" r="2"/><circle cx="18.5" cy="4.8" r="2"/><circle cx="12" cy="21" r=".6"/></symbol>
     <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></symbol>
     <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></symbol>
     <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/></symbol>
@@ -61,6 +62,7 @@
       <a href="#mapa" data-tab="mapa"><svg><use href="#i-map"/></svg>Mapa</a>
       <a href="#rota" data-tab="rota"><svg><use href="#i-route"/></svg>Rota de estudo</a>
       <a href="#minimapas" data-tab="minimapas"><svg><use href="#i-grid"/></svg>Minimapas</a>
+      <a href="#carreira" data-tab="carreira"><svg><use href="#i-career"/></svg>Carreira</a>
       <span class="navlabel">Aprender</span>
       <a href="#ia" data-tab="ia"><svg><use href="#i-spark"/></svg>IA no dia a dia</a>
       <a href="#prompts" data-tab="prompts"><svg><use href="#i-prompt"/></svg>Prompts</a>
@@ -70,7 +72,7 @@
 
     <div class="sidefoot">
       <div class="progress" aria-live="polite">
-        <div class="progresshead"><span>Seu progresso</span><strong id="pct">0%</strong></div>
+        <div class="progresshead"><span id="progName">Seu progresso</span><strong id="pct">0%</strong></div>
         <div class="bar" aria-hidden="true"><i id="barFill"></i></div>
         <small id="count"></small>
       </div>
@@ -85,6 +87,10 @@
       <button class="iconbtn only-mobile" id="sideOpen" aria-label="Abrir menu"><svg><use href="#i-menu"/></svg></button>
       <h1 id="pageTitle">Mapa</h1>
       <div class="tools" id="toolbar">
+        <div class="trailpick">
+          <select class="select" id="trailSel" aria-label="Trilha aberta"></select>
+          <button class="iconbtn" id="trailBtn" aria-label="Gerenciar trilhas" title="Minhas trilhas: criar, duplicar, excluir"><svg><use href="#i-route"/></svg></button>
+        </div>
         <label class="search">
           <svg><use href="#i-search"/></svg>
           <input id="q" type="search" placeholder="Buscar: Playwright, MCP, SQL…" aria-label="Buscar tecnologia ou tema na trilha">
@@ -110,7 +116,7 @@
 
       <section class="view" id="v-rota" hidden aria-label="Rota de estudo">
         <div class="page">
-          <p class="lead">A trilha em sequência. Estude o essencial de cada etapa antes de avançar; diferenciais ajudam, mas não devem atrasar o essencial. Passe o mouse num tópico para editar ou excluir.</p>
+          <p class="lead" id="routeLead"></p>
           <div class="route" id="route"></div>
         </div>
       </section>
@@ -143,6 +149,35 @@
         </div>
       </section>
 
+      <section class="view" id="v-carreira" hidden aria-label="Carreira">
+        <div class="cview">
+          <div class="minibar">
+            <div class="trailpick">
+              <select class="select" id="cSel" aria-label="Carreira aberta"></select>
+              <button class="iconbtn" id="cManage" aria-label="Gerenciar carreiras" title="Minhas carreiras: criar, duplicar, excluir"><svg><use href="#i-career"/></svg></button>
+            </div>
+            <div class="miniprog" id="cProg"></div>
+            <div class="seg" role="group" aria-label="Forma de exibição">
+              <button class="btn sm" data-cmode="escada" aria-pressed="true"><svg><use href="#i-career"/></svg>Escada em Y</button>
+              <button class="btn sm" data-cmode="mapa" aria-pressed="false"><svg><use href="#i-map"/></svg>Mapa mental</button>
+            </div>
+            <button class="btn sm ghost" id="cHelp"><svg><use href="#i-info"/></svg>Como funciona</button>
+          </div>
+          <div class="cscroll" id="cScroll"><div class="page" id="carreiraPage"></div></div>
+          <div class="minimap" id="cMapBox" hidden>
+            <svg id="csvg" role="img" aria-label="Mapa mental da carreira"></svg>
+            <div class="focusbar" id="cFocusBar" hidden></div>
+            <p class="maphint">Clique no <b>+</b> de um nível para abrir os requisitos · marque o que já faz · <b>Tab</b> cria item · duplo clique edita</p>
+            <div class="zoom">
+              <button id="czexpand" aria-label="Abrir todos os ramos" title="Abrir todos os ramos"><svg><use href="#i-expand"/></svg></button>
+              <button id="czcollapse" aria-label="Recolher os ramos" title="Recolher os ramos"><svg><use href="#i-collapse"/></svg></button>
+              <button id="czin" aria-label="Aproximar"><svg><use href="#i-plus"/></svg></button>
+              <button id="czout" aria-label="Afastar"><svg><use href="#i-minus"/></svg></button>
+              <button id="czfit" aria-label="Centralizar mapa"><svg><use href="#i-fit"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </section>
       <section class="view" id="v-ia" hidden aria-label="IA no dia a dia"><div class="page" id="iaPage"></div></section>
       <section class="view" id="v-prompts" hidden aria-label="Prompts"><div class="page" id="promptsPage"></div></section>
       <section class="view" id="v-biblioteca" hidden aria-label="Biblioteca"><div class="page" id="libPage"></div></section>
@@ -163,28 +198,35 @@
 <input type="file" id="importFile" accept="application/json,.json" hidden>
 
 <!-- conteúdo -->
-<script src="data/trilha.js?v=0.3"></script>
-<script src="data/ia.js?v=0.3"></script>
-<script src="data/prompts.js?v=0.3"></script>
-<script src="data/biblioteca.js?v=0.3"></script>
-<script src="data/minimapas/seguranca.js?v=0.3"></script>
-<script src="data/personalizado.js?v=0.3"></script>
+<script src="data/trilha.js?v=0.4"></script>
+<script src="data/ia.js?v=0.4"></script>
+<script src="data/prompts/estudo-requisitos.js?v=0.4"></script>
+<script src="data/prompts/testes.js?v=0.4"></script>
+<script src="data/prompts/automacao.js?v=0.4"></script>
+<script src="data/prompts/qualidade.js?v=0.4"></script>
+<script src="data/prompts/ia-carreira.js?v=0.4"></script>
+<script src="data/biblioteca.js?v=0.4"></script>
+<script src="data/minimapas/seguranca.js?v=0.4"></script>
+<script src="data/carreira.js?v=0.4"></script>
+<script src="data/personalizado.js?v=0.4"></script>
 <!-- base comum -->
-<script src="js/core/util.js?v=0.3"></script>
-<script src="js/core/estado.js?v=0.3"></script>
-<script src="js/core/interface.js?v=0.3"></script>
-<script src="js/core/mindmap.js?v=0.3"></script>
+<script src="js/core/util.js?v=0.4"></script>
+<script src="js/core/estado.js?v=0.4"></script>
+<script src="js/core/interface.js?v=0.4"></script>
+<script src="js/core/mindmap.js?v=0.4"></script>
 <!-- páginas -->
-<script src="js/pages/mapa.js?v=0.3"></script>
-<script src="js/pages/rota.js?v=0.3"></script>
-<script src="js/pages/topico.js?v=0.3"></script>
-<script src="js/pages/minimapas.js?v=0.3"></script>
-<script src="js/pages/ia.js?v=0.3"></script>
-<script src="js/pages/prompts.js?v=0.3"></script>
-<script src="js/pages/biblioteca.js?v=0.3"></script>
-<script src="js/pages/projetos.js?v=0.3"></script>
-<script src="js/pages/dados.js?v=0.3"></script>
+<script src="js/pages/mapa.js?v=0.4"></script>
+<script src="js/pages/rota.js?v=0.4"></script>
+<script src="js/pages/topico.js?v=0.4"></script>
+<script src="js/pages/trilhas.js?v=0.4"></script>
+<script src="js/pages/carreira.js?v=0.4"></script>
+<script src="js/pages/minimapas.js?v=0.4"></script>
+<script src="js/pages/ia.js?v=0.4"></script>
+<script src="js/pages/prompts.js?v=0.4"></script>
+<script src="js/pages/biblioteca.js?v=0.4"></script>
+<script src="js/pages/projetos.js?v=0.4"></script>
+<script src="js/pages/dados.js?v=0.4"></script>
 <!-- navegação e início: sempre por último -->
-<script src="js/app.js?v=0.3"></script>
+<script src="js/app.js?v=0.4"></script>
 </body>
 </html>

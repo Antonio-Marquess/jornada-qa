@@ -1,6 +1,6 @@
 /* Jornada QA — Tópico: detalhes na gaveta, checklists, anotações e editor de tópicos e etapas. */
 (function(A){
-const {$, esc, safeUrl, ext, clone, uid, ico, actions, store, toast, copyBtn, saveContent, done, stageOf, stageLabel, DEPTHS, PRIOS, updateMeter, pBody, showPanel, closePanel, linksIn} = A;
+const {$, esc, safeUrl, ext, clone, uid, ico, actions, store, toast, copyBtn, saveContent, done, stageOf, stageLabel, trail, stageIn, placeTopic, removeTopic, removeLabel, snapshot, DEPTHS, PRIOS, updateMeter, pBody, showPanel, closePanel, linksIn} = A;
 /* funções de outros arquivos, resolvidas na hora da chamada */
 const renderMap = (...a) => A.renderMap(...a),
       renderLegend = (...a) => A.renderLegend(...a),
@@ -12,7 +12,7 @@ const renderMap = (...a) => A.renderMap(...a),
 
 function openPanel(t){
   if(!t) return;
-  const s = stageOf(t.s), on = done.has(t.id);
+  const s = stageIn(t), on = done.has(t.id);
   showPanel(stageLabel(s) + (t.ia ? " · IA" : ""), s?.color, t.t);
   pBody.innerHTML = `
     <div class="actions">
@@ -85,14 +85,15 @@ function readLinkRows(root){
 
 function openEditor(t, stageId){
   const isNew = !t;
-  const d = t ? clone(t) : {s:stageId || A.C.stages[0]?.id, t:"", p:DEPTHS[0], pr:PRIOS[0], ia:false, d:"", est:[], tech:[], l:[], x:"", lab:"", cc:[]};
+  const stages = trail().stages, cur = t ? stageIn(t) : null;
+  const d = t ? {...clone(t), s:cur?.id} : {s:stageId || stages[0]?.id, t:"", p:DEPTHS[0], pr:PRIOS[0], ia:false, d:"", est:[], tech:[], l:[], x:"", lab:"", cc:[]};
   const lines = v => v.split("\n").map(x => x.trim()).filter(Boolean);
   const s = stageOf(d.s);
   showPanel(isNew ? "Novo tópico" : "Editando", s?.color, isNew ? "Novo tópico" : d.t);
   pBody.innerHTML = `<form class="form" id="tForm" novalidate>
     <label>Título<input class="in" name="t" required value="${esc(d.t)}" placeholder="Ex.: Testes de contrato"></label>
     <p class="err" id="eTitle" hidden>Dê um título ao tópico.</p>
-    <label>Etapa<select class="in" name="s">${A.C.stages.map(st => `<option value="${esc(st.id)}"${st.id === d.s ? " selected" : ""}>${esc(stageLabel(st))}</option>`).join("")}</select></label>
+    <label>Etapa<select class="in" name="s">${stages.map(st => `<option value="${esc(st.id)}"${st.id === d.s ? " selected" : ""}>${esc(stageLabel(st))}</option>`).join("")}</select></label>
     <div class="two"><label>Profundidade<select class="in" name="p">${opt(DEPTHS, d.p)}</select></label>
     <label>Prioridade<select class="in" name="pr">${opt(PRIOS, d.pr)}</select></label></div>
     <label class="checkline"><input type="checkbox" name="ia"${d.ia ? " checked" : ""}> Tópico de IA</label>
@@ -106,7 +107,7 @@ function openEditor(t, stageId){
     <label>Laboratório <span class="muted">comandos, dados ou texto de apoio; aparece com botão Copiar</span><textarea class="in mono" name="lab" rows="5">${esc(d.lab || "")}</textarea></label>
     <label>Pronto quando <span class="muted">critérios de conclusão, um por linha</span><textarea class="in" name="cc" rows="3">${esc((d.cc || []).join("\n"))}</textarea></label>
     <div class="formfoot">
-      ${isNew ? "<span></span>" : `<button type="button" class="btn ghost danger" id="tDel">${ico("trash")}Excluir</button>`}
+      ${isNew ? "<span></span>" : `<button type="button" class="btn ghost danger" id="tDel">${ico("trash")}${A.keeps(t, cur) ? "Tirar da trilha" : "Excluir"}</button>`}
       <span class="right"><button type="button" class="btn" id="tCancel">Cancelar</button><button class="btn primary" type="submit">${isNew ? "Criar tópico" : "Salvar"}</button></span>
     </div>
   </form>`;
@@ -116,21 +117,24 @@ function openEditor(t, stageId){
     e.preventDefault();
     const title = f.t.value.trim(); $("#eTitle").hidden = !!title; if(!title){ f.t.focus(); return; }
     const {out, bad} = readLinkRows(f); $("#eLinks").hidden = !bad.length; if(bad.length){ bad[0].focus(); return; }
-    const data = {s:f.s.value, t:title, p:f.p.value, pr:f.pr.value, ia:f.ia.checked, d:f.d.value.trim(),
+    const data = {t:title, p:f.p.value, pr:f.pr.value, ia:f.ia.checked, d:f.d.value.trim(),
       est:lines(f.est.value), tech:f.tech.value.split(",").map(x => x.trim()).filter(Boolean), l:out, x:f.x.value.trim(),
       lab:f.lab.value.replace(/\s+$/, ""), cc:lines(f.cc.value)};
     let target;
-    if(isNew){ target = {id:uid("t"), ...data}; A.C.topics.push(target); }
-    else { target = A.C.topics.find(o => o.id === t.id); Object.assign(target, data); }
+    const st = stageOf(f.s.value);
+    if(!st){ toast("Crie uma etapa antes de adicionar tópicos."); return; }
+    snapshot();
+    if(isNew){ target = {id:uid("t"), s:st.id, ...data}; placeTopic(target, st); }
+    else { target = A.C.topics.find(o => o.id === t.id); Object.assign(target, data); if(st !== cur) placeTopic(target, st); }
     saveContent(); refreshTrail(); toast(isNew ? "Tópico criado." : "Alterações salvas."); openPanel(target);
   };
-  if(!isNew) $("#tDel").onclick = () => deleteTopic(t);
+  if(!isNew) $("#tDel").onclick = () => deleteTopic(t, cur);
 }
-function deleteTopic(t){
-  if(!t || !confirm(`Excluir o tópico "${t.t}"? As anotações dele também serão apagadas.`)) return;
-  A.C.topics = A.C.topics.filter(o => o.id !== t.id); delete A.notes[t.id]; delete A.checks[t.id]; done.delete(t.id);
-  store.set("jqa-checklists", A.checks); store.set("jqa-notas", A.notes); store.set("jqa-trilha", [...done]);
-  saveContent(); refreshTrail(); closePanel(); toast("Tópico excluído.");
+function deleteTopic(t, s){
+  s = s || stageIn(t);
+  if(!t || !confirm(removeLabel(t, s))) return;
+  snapshot(); const r = removeTopic(t, s);
+  saveContent(); refreshTrail(); closePanel(); toast(r === "saiu" ? "Tópico tirado desta trilha." : "Tópico excluído.");
 }
 
 function openStageEditor(s){
@@ -147,8 +151,8 @@ function openStageEditor(s){
     saveContent(); refreshTrail(); closePanel(); toast("Etapa salva."); };
 }
 
-function refreshTrail(){ updateMeter(); renderLegend(); renderMap(); renderRoute(); if(A.rendered.lib) renderLib(true); }
-$("#newTopic").onclick = () => openEditor(null);
+function refreshTrail(){ updateMeter(); renderLegend(); renderMap(); renderRoute(); A.renderTrailPicker?.(); if(A.rendered.lib) renderLib(true); if(A.rendered.carreira) A.renderCarreira(); }
+$("#newTopic").onclick = () => { if(!trail().stages.length){ A.newStageIn(); saveContent(); refreshTrail(); } openEditor(null); };
 
 Object.assign(A, {deleteTopic, openEditor, openPanel, openStageEditor, refreshTrail});
 })(JQA.app);

@@ -15,7 +15,7 @@ const renderMap = (...a) => A.renderMap(...a),
 /* =====================================================================
    NAVEGAÇÃO
    ===================================================================== */
-const TABS = {mapa:"Mapa", rota:"Rota de estudo", minimapas:"Minimapas", ia:"IA no dia a dia", prompts:"Prompts", biblioteca:"Biblioteca", projetos:"Projetos"};
+const TABS = {mapa:"Mapa", rota:"Rota de estudo", minimapas:"Minimapas", carreira:"Carreira", ia:"IA no dia a dia", prompts:"Prompts", biblioteca:"Biblioteca", projetos:"Projetos"};
 A.curTab = null;
 A.rendered = {};
 function show(hash){
@@ -30,6 +30,7 @@ function show(hash){
   document.title = `${title} · Jornada QA`;
   const trail = tab === "mapa" || tab === "rota";
   $("#toolbar").hidden = !trail;
+  if(tab === "carreira"){ A.renderCarreira(); A.fitCareer(); A.rendered.carreira = 1; }
   if(tab === "ia" && !A.rendered.ia){ renderIA(); A.rendered.ia = 1; }
   if(tab === "prompts" && !A.rendered.prompts){ renderPrompts(); A.rendered.prompts = 1; }
   if(tab === "biblioteca" && !A.rendered.lib){ renderLib(); A.rendered.lib = 1; }
@@ -40,7 +41,7 @@ window.addEventListener("hashchange", () => show(location.hash.slice(1)));
 
 
 /* depois de desfazer: redesenha tudo que mostra conteúdo */
-A.refreshAll = () => { A.refreshTrail(); A.refreshMini(); if(A.curTab === "minimapas") show(location.hash.slice(1)); };
+A.refreshAll = () => { A.refreshTrail(); if(A.curTab === "carreira") A.renderCarreira(); A.refreshMini(); if(A.curTab === "minimapas") show(location.hash.slice(1)); };
 
 /* ---------- início ---------- */
 updateMeter(); renderLegend(); renderMap(); renderRoute();

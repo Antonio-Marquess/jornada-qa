@@ -2,7 +2,7 @@
 
 Um mapa interativo para começar e crescer em qualidade de software, com IA no dia a dia desde o primeiro passo.
 
-**Versão 0.3** · funciona direto no navegador, sem instalar nada.
+**Versão 0.4** · funciona direto no navegador, sem instalar nada.
 
 ## O que tem
 
@@ -10,9 +10,11 @@ Um mapa interativo para começar e crescer em qualidade de software, com IA no d
 | --- | --- |
 | Mapa | Mapa mental da trilha: 5 etapas, 70 tópicos e, dentro de cada tópico, o que estudar, tecnologias e materiais. Ramos abrem e fecham, duplo clique foca |
 | Rota de estudo | A mesma trilha em sequência, com checklist e prévia das anotações |
+| Trilhas próprias | Seletor de trilha no Mapa e na Rota: a Jornada QA oficial ou trilhas montadas por você (escolhendo tópicos da oficial, copiando a oficial inteira ou do zero, com tópicos seus). O progresso é um só |
+| Carreira | Carreira em Y: base comum (estágio a sênior), trilha técnica (especialista, staff), trilha de gestão (coordenação, gerência, head) e líder técnico como ponte. Cada nível diz o que se espera, o que estudar, o que fazer para provar e o que costuma travar, com autoavaliação |
 | Minimapas | Um mapa mental por área (Segurança e, em breve, outras) com fundamentos, o que estudar, ferramentas, onde praticar e os tópicos da trilha ligados. Também os seus próprios mapas, criados do zero |
 | IA no dia a dia | Onde a IA ajuda, MCP explicado, servidores MCP úteis para QA, agentes de teste do Playwright, regras de ouro e exercícios |
-| Prompts | Biblioteca de prompts para QA, com filtro por categoria e botão de copiar |
+| Prompts | 72 prompts de QA em português e inglês, no formato de skill (objetivo, instruções, exemplo, formato e checklist), com nível, categoria e botões para copiar o prompt ou a skill |
 | Biblioteca | Artigos, documentação, sites para praticar, repositórios, cursos, canais, roadmaps e comunidades, com filtros por tipo, etapa e tema |
 | Projetos | Projetos guiados para o portfólio, em ordem de dificuldade |
 
@@ -24,9 +26,26 @@ Cada tópico abre com:
 - **Pronto quando:** critérios para saber que terminou
 - **Minhas anotações**
 
-O progresso (tópicos dominados, checklists, exercícios e projetos concluídos) e as anotações ficam salvos no navegador de cada pessoa.
+O progresso (tópicos dominados, checklists, exercícios e projetos concluídos), as trilhas próprias, a autoavaliação de carreira e as anotações ficam salvos no navegador de cada pessoa. Cada pessoa, no seu navegador, tem os seus; para levar para outro computador, use **Seus dados › Exportar backup**.
 
 ## Versões
+
+**v0.4**
+
+- **Trilhas próprias:** cada pessoa monta as suas trilhas ao lado da oficial. Seletor no topo do Mapa e da Rota; criar escolhendo tópicos da oficial, copiando a oficial inteira ou em branco; renomear, duplicar e excluir. Os tópicos da oficial compartilham progresso e anotações; tópicos criados numa trilha própria só aparecem nela
+- **Aba Carreira** em Y: base comum (Estágio, Júnior, Pleno, Sênior), trilha técnica (Especialista/SDET, Staff/Principal), trilha de gestão (Coordenação, Gerência, Head) e Líder técnico como ponte entre as duas
+- Cada nível tem escopo, nomes que o cargo costuma ter nas empresas, o que se espera, o que estudar (tópicos da trilha e minimapas), o que fazer para provar, comportamentos e o que costuma travar. Sem prazos: evidência, não tempo de casa
+- Autoavaliação: **Estou aqui**, **Quero chegar aqui** e itens marcados; o topo mostra o que falta para o objetivo. **Criar minha trilha para este nível** monta uma trilha própria com os tópicos do nível
+- Níveis editáveis (nome, caminho, textos, tópicos ligados) e novos níveis em cada caminho
+- **Minhas carreiras:** cada pessoa monta a sua ao lado da Carreira em Y oficial (copiando a oficial, só a base comum ou em branco), com os cargos da empresa ou um plano próprio; cada carreira guarda onde você está, o objetivo e o que já marcou
+- Na escada em Y, clicar num nível abre os **requisitos ao lado**, em caixinhas: escopo, o que se espera, o que estudar, o que provar, comportamentos e o que trava; cada grupo abre os itens lateralmente, com caixinha para marcar, remover e adicionar
+- Carreira também como **mapa mental**: cada nível abre nos seus requisitos (escopo, o que se espera, o que estudar, o que provar, comportamentos, o que trava), com caixinhas para marcar e edição direto no mapa
+- Aba Prompts nova: **72 prompts de QA em português e inglês** (seletor PT | EN), em 17 categorias, com nível, descrição, "quando usar" e "antes de usar a resposta"
+- Cada prompt no formato de skill: **Objetivo** (papel e para quê), **Antes de começar** (o que a IA pergunta se faltar informação), **Instruções** passo a passo, **Exemplo** de entrada e saída, **Formato da saída** e **Checklist** que a IA confere antes de responder
+- Escritos com as boas práticas de engenharia de prompt da Anthropic, da OpenAI e do Google; guia "Como estes prompts foram escritos" no topo da aba
+- **Copiar prompt** copia o texto completo, pronto para colar; **Copiar como skill** gera o mesmo conteúdo em SKILL.md
+- Filtros por categoria e nível, busca nos dois idiomas, edição por seção nos dois idiomas
+- Prompts em `data/prompts/`, um arquivo por grupo de categorias
 
 **v0.3**
 
@@ -66,7 +85,7 @@ Backup e publicação ficam em **Seus dados**, na barra lateral:
 | Exportar backup | Baixa um `.json` com conteúdo, anotações e progresso |
 | Importar backup | Carrega esse `.json` em outro navegador ou computador |
 | Publicar no GitHub | Gera o arquivo `personalizado.js` com o conteúdo editado (sem anotações nem progresso) |
-| Restaurar original | Descarta as edições de conteúdo deste navegador; anotações e progresso continuam |
+| Restaurar original | Descarta as edições de conteúdo deste navegador; trilhas e mapas próprios, anotações e progresso continuam |
 
 ### Publicar suas edições para todos
 
@@ -85,7 +104,7 @@ Abra o arquivo `index.html` no navegador. Pronto.
 3. Em **Source**, escolha **Deploy from a branch**, branch `main`, pasta `/ (root)`, e salve.
 4. Em alguns minutos o site estará em `https://SEU-USUARIO.github.io/jornada-qa/`.
 
-Dá para abrir uma aba direto pelo endereço: `#mapa`, `#rota`, `#minimapas`, `#minimapas/seguranca`, `#ia`, `#prompts`, `#biblioteca` ou `#projetos`.
+Dá para abrir uma aba direto pelo endereço: `#mapa`, `#rota`, `#minimapas`, `#minimapas/seguranca`, `#carreira`, `#ia`, `#prompts`, `#biblioteca` ou `#projetos`.
 
 ## Estrutura
 
@@ -96,9 +115,10 @@ jornada-qa/
 ├── data/                   CONTEÚDO: tudo o que se estuda, separado do código
 │   ├── trilha.js           etapas e tópicos do mapa e da rota
 │   ├── ia.js               aba IA no dia a dia
-│   ├── prompts.js          biblioteca de prompts
+│   ├── prompts/            biblioteca de prompts, um arquivo por grupo de categorias
 │   ├── biblioteca.js       links da biblioteca e projetos
 │   ├── minimapas/          um arquivo por área (seguranca.js, …)
+│   ├── carreira.js         níveis da carreira em Y
 │   └── personalizado.js    conteúdo editado pela página (substitui o padrão quando preenchido)
 └── js/                     CÓDIGO: como o conteúdo aparece e se comporta
     ├── core/               base usada por todas as páginas
@@ -110,6 +130,8 @@ jornada-qa/
     │   ├── mapa.js         mapa mental, busca, pan e zoom
     │   ├── rota.js         rota de estudo
     │   ├── topico.js       detalhes do tópico e editor
+│   ├── trilhas.js      trilhas próprias: seletor, criar, duplicar, excluir
+│   ├── carreira.js     carreira em Y, autoavaliação e editor de níveis
     │   ├── minimapas.js    minimapas por área
     │   ├── ia.js, prompts.js, biblioteca.js, projetos.js
     │   └── dados.js        backup, importação e publicação
@@ -178,10 +200,38 @@ Tipos de ramo: `fund` (Fundamentos), `est` (O que estudar, em ordem), `ferr` (Fe
 
 Tipos: `artigo`, `doc`, `pratica`, `repo`, `curso`, `canal`, `roadmap`, `comunidade`. Use `pago:true` para cursos pagos e `e:"todas"` para itens que servem a qualquer etapa.
 
-**Um prompt** (`data/prompts.js`):
+**Um prompt** (`data/prompts/<grupo>.js`): cada campo de texto tem a versão em inglês com o sufixo `_en`.
 
 ```js
-{c:"Categoria", t:"Título", quando:"Quando usar.", p:`Texto do prompt`}
+{id:"meu-prompt", c:"Categoria", n:"Iniciante",
+ t:"Título", d:"Descrição curta.", quando:"Quando usar.",
+ obj:"Você é ... Objetivo: ...",
+ antes:["Pergunta que a IA faz se faltar informação"],
+ passos:["Primeiro passo", "Segundo passo"],
+ ex:`Entrada e trecho da saída esperada`,
+ saida:["Formato da resposta"],
+ check:["O que a IA confere antes de responder"],
+ rev:"O que revisar na resposta."}
+```
+
+A página monta o texto completo a partir dessas seções.
+
+**Um item da biblioteca** (`data/biblioteca.js`):
+
+```js
+{tipo:"artigo", t:"Título", u:"https://...", e:"e3", tema:"Automação", d:"Por que vale ler."}
+```
+
+Tipos: `artigo`, `doc`, `pratica`, `repo`, `curso`, `canal`, `roadmap`, `comunidade`. Use `pago:true` para cursos pagos e `e:"todas"` para itens que servem a qualquer etapa.
+
+**Um prompt** (`data/prompts/<grupo>.js`):
+
+```js
+{id:"meu-prompt", c:"Categoria", n:"Iniciante",
+ t:"Título", t_en:"Title", d:"Descrição curta.", d_en:"Short description.",
+ quando:"Quando usar.", quando_en:"When to use.",
+ p:`Texto do prompt com {{variáveis}}`, p_en:`Prompt text with {{variables}}`,
+ rev:"O que revisar na resposta.", rev_en:"What to review in the answer."}
 ```
 
 ## Próximas ideias
