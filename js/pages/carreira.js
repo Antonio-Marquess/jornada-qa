@@ -12,7 +12,7 @@ const RAMOS = {
 };
 const KINDS = [["espera","e","O que se espera"],["provar","p","O que fazer para provar"],["comport","c","Comportamentos"]];
 const st = store.get("jqa-carreira", {}); st.marc = st.marc || {}; st.pos = st.pos || {};
-/* onde estou e objetivo, por carreira (a versão anterior guardava só os da oficial) */
+/* onde estou e objetivo, por carreira (a versão anterior guardava só os da principal) */
 if(st.atual || st.alvo){ st.pos.oficial = {atual:st.atual, alvo:st.alvo}; delete st.atual; delete st.alvo; }
 const save = () => store.set("jqa-carreira", st);
 const OF = "oficial";
@@ -209,8 +209,8 @@ $("#carreiraPage").addEventListener("submit", e => {
 });
 
 
-function delLevel(n){
-  if(!n || !confirm(`Excluir o nível "${n.nome}"? Os requisitos e as marcações dele serão apagados. Dá para desfazer com Ctrl+Z.`)) return;
+async function delLevel(n){
+  if(!n || !await A.ask(`Excluir o nível "${n.nome}"? Os requisitos e as marcações dele serão apagados. Dá para desfazer com Ctrl+Z.`)) return;
   snapshot(); setN(N().filter(x => x !== n)); delete st.marc[n.id];
   if(pos().atual === n.id) pos().atual = undefined; if(pos().alvo === n.id) pos().alvo = undefined;
   if(yOpen === n.id) yOpen = null;
@@ -222,7 +222,7 @@ function openHelp(){
   showPanel("Carreira", null, "Como funciona");
   pBody.innerHTML = `${summary()}
         ${c.oficial ? `<p class="hlead">Carreira em Y: uma base comum até o nível sênior e, depois, dois caminhos de mesmo valor. Na trilha técnica você cresce em profundidade e influência; na de gestão, cresce por meio de outras pessoas. O líder técnico é a ponte entre as duas. Quer adaptar para a sua empresa ou para o seu plano? Crie a sua carreira no botão ao lado do seletor, no topo.</p>`
-      : `<p class="hlead">${c.d ? esc(c.d) + " " : ""}Esta é uma carreira sua: mude nomes, níveis e requisitos à vontade, aqui ou no mapa mental. A Carreira em Y oficial continua igual.</p>`}
+      : `<p class="hlead">${c.d ? esc(c.d) + " " : ""}Esta é uma carreira sua: mude nomes, níveis e requisitos à vontade, aqui ou no mapa mental. A Carreira em Y principal continua igual.</p>`}
     <section><h4>Como ler esta carreira</h4>
       <ul>
         <li><b>Nomes de cargo mudam de empresa para empresa.</b> “Analista II” numa pode ser o “Sênior” de outra. Compare o escopo e o que se espera, não o título.</li>
@@ -236,7 +236,7 @@ function openHelp(){
     <section><h4>Escada em Y e mapa mental</h4><ul class="hlist">
       <li><b>Escada em Y:</b> clique num nível para ver os requisitos ao lado. Lápis edita, lixeira exclui, o campo no fim de cada grupo adiciona.</li>
       <li><b>Mapa mental:</b> a mesma carreira em ramos. Clique no + de um nível para abrir os requisitos. Tab cria item, duplo clique edita, Delete exclui.</li>
-      <li><b>Minhas carreiras:</b> o ícone ao lado do seletor cria a sua carreira (cópia da oficial, só a base ou em branco).</li>
+      <li><b>Minhas carreiras:</b> o ícone ao lado do seletor cria a sua carreira (cópia da principal, só a base ou em branco).</li>
     </ul></section>`;
   pBody.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { closePanel(); toggleReq(b.dataset.n, true); });
   pBody.querySelectorAll("[data-mktrail]").forEach(b => b.onclick = () => makeTrail(byId(b.dataset.mktrail)));
@@ -299,10 +299,10 @@ function openLevel(n){
 }
 
 /* trilha própria com os tópicos do nível; os estudos “além da trilha” viram tópicos seus */
-function makeTrail(n){
+async function makeTrail(n){
   const name = `Rumo a ${n.nome}`, exists = A.C.trilhas.find(t => t.t === name);
-  if(exists && !confirm(`Você já tem a trilha "${name}". Criar outra mesmo assim?`)){ closePanel(); A.openTrail(exists.id); return; }
-  const extra = n.extra.length ? [{name:"Além da trilha", goal:`Estudos indicados para ${n.nome} que não estão na trilha oficial.`, titles:n.extra, desc:`Indicado para ${n.nome}.`}] : [];
+  if(exists && !await A.ask(`Você já tem a trilha "${name}". Criar outra mesmo assim?`)){ closePanel(); A.openTrail(exists.id); return; }
+  const extra = n.extra.length ? [{name:"Além da trilha", goal:`Estudos indicados para ${n.nome} que não estão na trilha principal.`, titles:n.extra, desc:`Indicado para ${n.nome}.`}] : [];
   const tr = A.createTrail(name, n.resumo, n.topicos, extra);
   closePanel(); A.openTrail(tr.id); location.hash = "rota";
   toast(`Trilha "${name}" criada.`);
@@ -337,8 +337,8 @@ function editLevel(n, isNew){
   const count = () => { $("#cCnt").textContent = `· ${f.querySelectorAll("[name=top]:checked").length} escolhidos`; };
   f.addEventListener("change", count); count();
   $("#cCancel").onclick = () => { if(isNew){ setN(N().filter(x => x !== n)); saveContent(); renderCarreira(); closePanel(); } else openLevel(n); };
-  $("#cDel").onclick = () => {
-    if(!confirm(`Excluir o nível "${n.nome}"? As marcações dele também serão apagadas.`)) return;
+  $("#cDel").onclick = async () => {
+    if(!await A.ask(`Excluir o nível "${n.nome}"? As marcações dele também serão apagadas.`)) return;
     snapshot(); setN(N().filter(x => x !== n)); delete st.marc[n.id];
     if(pos().atual === n.id) pos().atual = undefined; if(pos().alvo === n.id) pos().alvo = undefined;
     save(); saveContent(); renderCarreira(); closePanel(); toast("Nível excluído.");
@@ -410,8 +410,7 @@ function levelNode(n){
     edit:v => mutate(() => { n.nome = v; }),
     add:() => mutate(() => insertItem(n, "espera", "e", n.espera.length)),
     sib:() => mutate(() => newLevel(n.ramo, n.id)),
-    del:() => { if(!confirm(`Excluir o nível "${n.nome}"?`)) return false;
-      mutate(() => { setN(N().filter(x => x !== n)); delete st.marc[n.id]; save(); }); },
+    del:() => { A.ask(`Excluir o nível "${n.nome}"?`).then(ok => ok && mutate(() => { setN(N().filter(x => x !== n)); delete st.marc[n.id]; save(); })); return false; },
     children:groups};
 }
 function buildCareer(){
@@ -439,11 +438,11 @@ function focusLevel(id){ setMode("mapa"); requestAnimationFrame(() => cmm.focus(
 setMode(mode || "escada");
 
 /* =====================================================================
-   MINHAS CARREIRAS: cada pessoa monta a sua, ao lado da Carreira em Y oficial
+   MINHAS CARREIRAS: cada pessoa monta a sua, ao lado da Carreira em Y principal
    ===================================================================== */
 function renderCareerPicker(){
   const sel = $("#cSel");
-  sel.innerHTML = `<option value="${OF}">Carreira em Y (oficial)</option>`
+  sel.innerHTML = `<option value="${OF}">Carreira em Y (principal)</option>`
     + (own().length ? `<optgroup label="Minhas carreiras">${own().map(c => `<option value="${esc(c.id)}">${esc(c.t)}</option>`).join("")}</optgroup>` : "");
   sel.value = career().id;
 }
@@ -467,7 +466,7 @@ function createCareer(t, d, modo){
 function careerRow(c){
   const on = c.id === career().id, n = c.niveis.length;
   return `<div class="trow${on ? " on" : ""}">
-    <div class="trinfo"><b>${esc(c.t)}</b>${c.oficial ? '<span class="pill-of">oficial</span>' : ""}<small>${n} níveis</small>${c.d ? `<p>${esc(c.d)}</p>` : ""}</div>
+    <div class="trinfo"><b>${esc(c.t)}</b>${c.oficial ? '<span class="pill-of">principal</span>' : ""}<small>${n} níveis</small>${c.d ? `<p>${esc(c.d)}</p>` : ""}</div>
     <div class="tracts">
       ${on ? '<span class="muted sm">aberta</span>' : `<button class="btn sm" data-open="${esc(c.id)}">Abrir</button>`}
       ${c.oficial ? "" : `<button class="act" data-edit="${esc(c.id)}" aria-label="Editar ${esc(c.t)}" title="Editar">${ico("pen")}</button>`}
@@ -500,7 +499,7 @@ function openCareers(){
     const c = createCareer(t, f.d.value.trim(), f.modo.value);
     closePanel(); openCareer(c.id); toast("Carreira criada. Edite os níveis na escada ou no mapa mental.");
   };
-  pBody.querySelector(".trlist").addEventListener("click", e => {
+  pBody.querySelector(".trlist").addEventListener("click", async e => {
     const b = e.target.closest("button"); if(!b) return;
     const find = id => id === OF ? oficial : own().find(c => c.id === id);
     if(b.dataset.open){ openCareer(b.dataset.open); openCareers(); }
@@ -512,7 +511,7 @@ function openCareers(){
     }
     else if(b.dataset.del){
       const c = find(b.dataset.del);
-      if(!confirm(`Excluir a carreira "${c.t}"? Os níveis e as marcações dela serão apagados.`)) return;
+      if(!await A.ask(`Excluir a carreira "${c.t}"? Os níveis e as marcações dela serão apagados.`)) return;
       snapshot(); c.niveis.forEach(n => delete st.marc[n.id]); delete st.pos[c.id];
       A.C.carreiras = own().filter(x => x !== c); if(st.cur === c.id) st.cur = OF;
       save(); saveContent(); openCareer(career().id); openCareers(); toast("Carreira excluída.");
@@ -533,5 +532,14 @@ function editCareer(c){
 }
 
 
-Object.assign(A, {renderCarreira, openLevel, carreiraState:st, focusLevel, fitCareer:() => { if(mode === "mapa") requestAnimationFrame(() => cmm.fit()); }});
+/* resumo para a home: onde estou, objetivo, o que falta e o próximo item */
+function careerSummary(){
+  const p = pos(), cur = byId(p.atual), alvo = byId(p.alvo), gap = alvo ? prog(alvo) : null;
+  let next = null;
+  if(alvo){ const on = new Set(st.marc[alvo.id] || []);
+    for(const [k, px] of KINDS){ const i = alvo[k].findIndex((_, j) => !on.has(px + j)); if(i >= 0){ next = alvo[k][i]; break; } } }
+  return {career:career(), cur, alvo, gap, next, pct:gap ? pct(gap) : 0, niveis:N().length};
+}
+function showLevel(id){ setMode("escada"); yOpen = id; location.hash = "carreira"; requestAnimationFrame(() => renderCarreira()); }
+Object.assign(A, {careerSummary, showLevel, renderCarreira, openLevel, carreiraState:st, focusLevel, fitCareer:() => { if(mode === "mapa") requestAnimationFrame(() => cmm.fit()); }});
 })(JQA.app);

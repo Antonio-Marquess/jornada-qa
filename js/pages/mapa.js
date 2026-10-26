@@ -74,10 +74,9 @@ function build(){
       add:() => mutate(() => newTopic(s.id)),
       sib:() => mutate(() => newStage(s.id)),
       del:() => { const n = topicsOf(s).length;
-        const msg = s.ids ? `Excluir a etapa "${s.name}" desta trilha? Os tópicos da oficial continuam lá; os que você criou nela serão apagados.`
+        const msg = s.ids ? `Excluir a etapa "${s.name}" desta trilha? Os tópicos da principal continuam lá; os que você criou nela serão apagados.`
           : n ? `Excluir a etapa "${s.name}" e os ${n} tópicos dela?` : `Excluir a etapa "${s.name}"?`;
-        if(!confirm(msg)) return false;
-        mutate(() => deleteStage(s)); },
+        A.ask(msg).then(ok => { if(ok){ mutate(() => deleteStage(s)); renderMap(); } }); return false; },
       accepts:["topic"], drop:n => mutate(() => moveTopic(findT(n.id), s.id)),
       children:topicsOf(s).map(t => topicNode(t, s, k))
     }))};
@@ -116,7 +115,7 @@ function topicNode(t, s, k){
     edit:v => mutate(() => { t.t = v; }),
     add:() => mutate(() => insertEst(t, est.length)),
     sib:() => mutate(() => newTopic(s.id, t.id)),
-    del:() => { if(!confirm(removeLabel(t, s))) return false; mutate(() => removeTopic(t, s)); },
+    del:() => { A.ask(removeLabel(t, s)).then(ok => { if(ok){ mutate(() => removeTopic(t, s)); renderMap(); } }); return false; },
     dragType:"topic", accepts:["topic", "est"],
     drop:n => mutate(() => n.dragType === "topic" ? moveTopic(findT(n.id), s.id, t.id) : moveEst(findT(n.tid), n.ei, t, est.length)),
     children:kids};
@@ -149,7 +148,7 @@ function searchMap(){
 }
 const fit = () => mm.fit();
 function focusTopic(id){
-  /* tópico fora da trilha aberta: abre a oficial, onde todo tópico da oficial aparece */
+  /* tópico fora da trilha aberta: abre a principal, onde todo tópico da principal aparece */
   const t = findTopic(id);
   if(t && !A.trailTopics().includes(t) && A.isOfficialTopic(t)){ A.setTrail(A.OFICIAL); A.refreshTrail(); }
   location.hash = "mapa"; requestAnimationFrame(() => mm.focus(id));

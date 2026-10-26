@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=0.4">
+<link rel="stylesheet" href="css/styles.css?v=0.5">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -35,6 +35,13 @@
     <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18"/></symbol>
     <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></symbol>
     <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></symbol>
+    <symbol id="i-notebook" viewBox="0 0 24 24"><rect x="5" y="3" width="15" height="18" rx="2"/><path d="M9 3v18M3 7h4M3 12h4M3 17h4M12.5 8H17M12.5 11.5H17"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-9 9"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="m8 8-4 4 4 4M16 8l4 4-4 4M13.5 5l-3 14"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-updown" viewBox="0 0 24 24"><path d="m8 9 4-4 4 4M8 15l4 4 4-4"/></symbol>
     <symbol id="i-career" viewBox="0 0 24 24"><path d="M12 21v-8.5M12 12.5 6.5 6.5M12 12.5l5.5-6"/><circle cx="5.5" cy="4.8" r="2"/><circle cx="18.5" cy="4.8" r="2"/><circle cx="12" cy="21" r=".6"/></symbol>
     <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></symbol>
     <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></symbol>
@@ -52,19 +59,25 @@
 <div class="app">
   <aside class="side" id="side" aria-label="Navegação">
     <div class="brand">
-      <span class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M9 16.5l5 5 9-11"/></svg></span>
-      <div><b>Jornada QA</b><small>Além do teste</small></div>
+      <button class="areabtn" id="areaBtn" title="Trocar ou criar jornada">
+        <span class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M9 16.5l5 5 9-11"/></svg></span>
+        <span class="areatxt"><b id="brandT">Jornada QA</b><small id="brandS">Além do teste</small></span>
+        <svg class="chev" aria-hidden="true"><use href="#i-updown"/></svg>
+      </button>
       <button class="iconbtn only-mobile" id="sideClose" aria-label="Fechar menu"><svg><use href="#i-x"/></svg></button>
     </div>
 
     <nav class="nav" aria-label="Seções">
+      <a href="#inicio" data-tab="inicio"><svg><use href="#i-home"/></svg>Início</a>
       <span class="navlabel">Trilha</span>
       <a href="#mapa" data-tab="mapa"><svg><use href="#i-map"/></svg>Mapa</a>
       <a href="#rota" data-tab="rota"><svg><use href="#i-route"/></svg>Rota de estudo</a>
       <a href="#minimapas" data-tab="minimapas"><svg><use href="#i-grid"/></svg>Minimapas</a>
       <a href="#carreira" data-tab="carreira"><svg><use href="#i-career"/></svg>Carreira</a>
-      <span class="navlabel">Aprender</span>
+      <span class="navlabel">Estudar</span>
+      <a href="#caderno" data-tab="caderno"><svg><use href="#i-notebook"/></svg>Caderno de estudos</a>
       <a href="#ia" data-tab="ia"><svg><use href="#i-spark"/></svg>IA no dia a dia</a>
+      <span class="navlabel">Recursos</span>
       <a href="#prompts" data-tab="prompts"><svg><use href="#i-prompt"/></svg>Prompts</a>
       <a href="#biblioteca" data-tab="biblioteca"><svg><use href="#i-book"/></svg>Biblioteca</a>
       <a href="#projetos" data-tab="projetos"><svg><use href="#i-folder"/></svg>Projetos</a>
@@ -85,6 +98,7 @@
   <div class="main">
     <header class="topbar">
       <button class="iconbtn only-mobile" id="sideOpen" aria-label="Abrir menu"><svg><use href="#i-menu"/></svg></button>
+      <button class="iconbtn backbtn" id="backBtn" aria-label="Voltar" title="Voltar" hidden><svg><use href="#i-back"/></svg></button>
       <h1 id="pageTitle">Mapa</h1>
       <div class="tools" id="toolbar">
         <div class="trailpick">
@@ -100,6 +114,7 @@
     </header>
 
     <main class="stage-area">
+      <section class="view" id="v-inicio" hidden aria-label="Início"><div class="page home" id="inicioPage"></div></section>
       <section class="view" id="v-mapa" aria-label="Mapa mental da trilha">
         <svg id="svg" role="img" aria-label="Mapa mental das etapas da carreira em QA"></svg>
         <div class="legend" id="legend" aria-hidden="true"></div>
@@ -178,6 +193,7 @@
           </div>
         </div>
       </section>
+      <section class="view" id="v-caderno" hidden aria-label="Caderno de estudos"><div id="nbRoot"></div></section>
       <section class="view" id="v-ia" hidden aria-label="IA no dia a dia"><div class="page" id="iaPage"></div></section>
       <section class="view" id="v-prompts" hidden aria-label="Prompts"><div class="page" id="promptsPage"></div></section>
       <section class="view" id="v-biblioteca" hidden aria-label="Biblioteca"><div class="page" id="libPage"></div></section>
@@ -197,36 +213,40 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <input type="file" id="importFile" accept="application/json,.json" hidden>
 
-<!-- conteúdo -->
-<script src="data/trilha.js?v=0.4"></script>
-<script src="data/ia.js?v=0.4"></script>
-<script src="data/prompts/estudo-requisitos.js?v=0.4"></script>
-<script src="data/prompts/testes.js?v=0.4"></script>
-<script src="data/prompts/automacao.js?v=0.4"></script>
-<script src="data/prompts/qualidade.js?v=0.4"></script>
-<script src="data/prompts/ia-carreira.js?v=0.4"></script>
-<script src="data/biblioteca.js?v=0.4"></script>
-<script src="data/minimapas/seguranca.js?v=0.4"></script>
-<script src="data/carreira.js?v=0.4"></script>
-<script src="data/personalizado.js?v=0.4"></script>
+<!-- jornadas e conteúdo (a Jornada QA fica em data/qa/) -->
+<script src="data/areas.js?v=0.5"></script>
+<script src="data/qa/trilha.js?v=0.5"></script>
+<script src="data/qa/ia.js?v=0.5"></script>
+<script src="data/qa/prompts/estudo-requisitos.js?v=0.5"></script>
+<script src="data/qa/prompts/testes.js?v=0.5"></script>
+<script src="data/qa/prompts/automacao.js?v=0.5"></script>
+<script src="data/qa/prompts/qualidade.js?v=0.5"></script>
+<script src="data/qa/prompts/ia-carreira.js?v=0.5"></script>
+<script src="data/qa/biblioteca.js?v=0.5"></script>
+<script src="data/qa/minimapas/seguranca.js?v=0.5"></script>
+<script src="data/qa/carreira.js?v=0.5"></script>
+<script src="data/personalizado.js?v=0.5"></script>
 <!-- base comum -->
-<script src="js/core/util.js?v=0.4"></script>
-<script src="js/core/estado.js?v=0.4"></script>
-<script src="js/core/interface.js?v=0.4"></script>
-<script src="js/core/mindmap.js?v=0.4"></script>
+<script src="js/core/util.js?v=0.5"></script>
+<script src="js/core/estado.js?v=0.5"></script>
+<script src="js/core/interface.js?v=0.5"></script>
+<script src="js/core/mindmap.js?v=0.5"></script>
+<script src="js/core/arquivos.js?v=0.5"></script>
 <!-- páginas -->
-<script src="js/pages/mapa.js?v=0.4"></script>
-<script src="js/pages/rota.js?v=0.4"></script>
-<script src="js/pages/topico.js?v=0.4"></script>
-<script src="js/pages/trilhas.js?v=0.4"></script>
-<script src="js/pages/carreira.js?v=0.4"></script>
-<script src="js/pages/minimapas.js?v=0.4"></script>
-<script src="js/pages/ia.js?v=0.4"></script>
-<script src="js/pages/prompts.js?v=0.4"></script>
-<script src="js/pages/biblioteca.js?v=0.4"></script>
-<script src="js/pages/projetos.js?v=0.4"></script>
-<script src="js/pages/dados.js?v=0.4"></script>
+<script src="js/pages/mapa.js?v=0.5"></script>
+<script src="js/pages/rota.js?v=0.5"></script>
+<script src="js/pages/topico.js?v=0.5"></script>
+<script src="js/pages/trilhas.js?v=0.5"></script>
+<script src="js/pages/carreira.js?v=0.5"></script>
+<script src="js/pages/minimapas.js?v=0.5"></script>
+<script src="js/pages/caderno.js?v=0.5"></script>
+<script src="js/pages/ia.js?v=0.5"></script>
+<script src="js/pages/prompts.js?v=0.5"></script>
+<script src="js/pages/biblioteca.js?v=0.5"></script>
+<script src="js/pages/projetos.js?v=0.5"></script>
+<script src="js/pages/dados.js?v=0.5"></script>
+<script src="js/pages/inicio.js?v=0.5"></script>
 <!-- navegação e início: sempre por último -->
-<script src="js/app.js?v=0.4"></script>
+<script src="js/app.js?v=0.5"></script>
 </body>
 </html>

@@ -12,14 +12,18 @@ const renderMap = (...a) => A.renderMap(...a),
 
 function openPanel(t){
   if(!t) return;
-  const s = stageIn(t), on = done.has(t.id);
+  const s = stageIn(t), on = done.has(t.id), v = A.canCompleteTopic(t);
   showPanel(stageLabel(s) + (t.ia ? " · IA" : ""), s?.color, t.t);
   pBody.innerHTML = `
     <div class="actions">
-      <button class="btn${on ? "" : " primary"}" id="pDone" aria-pressed="${on}">${on ? "Dominado" : "Marcar como dominado"}</button>
+      <button class="btn${on ? "" : " primary"}" id="pDone" aria-pressed="${on}"${!on && !v.ok ? ' aria-disabled="true"' : ""}>${on ? "Dominado" : "Marcar como dominado"}</button>
+      <button class="btn" id="pNoteBook">${ico("book")}Anotar no caderno</button>
       <button class="btn" id="pEdit">${ico("pen")}Editar</button>
       <button class="btn" id="pFocus">${ico("map")}Ver no mapa</button>
     </div>
+    ${!on ? `<div class="gate${v.ok ? " ok" : ""}"><div class="gateh"><b>${v.ok ? "Pronto para concluir" : "Para concluir"}</b>${v.total ? `<span>${v.feitos} de ${v.total} itens · ${v.pct}%</span>` : ""}</div>
+      ${v.total ? `<span class="nbbarx big"><i style="width:${v.pct}%"></i><em style="left:${v.regra.pct}%"></em></span>` : ""}
+      ${v.ok ? "" : `<p>${esc(A.whyNot(v))}</p>`}</div>` : ""}
     ${t.d ? `<p style="margin:0">${esc(t.d)}</p>` : ""}
     <dl class="facts"><div><dt>Profundidade</dt><dd>${esc(t.p)}</dd></div><div><dt>Prioridade</dt><dd>${esc(t.pr)}</dd></div></dl>
     ${t.tech.length ? `<section><h4>Tecnologias e conceitos</h4><div class="chips" id="pTech">${t.tech.map(k => `<button data-k="${esc(k)}" title="Ver onde mais aparece na trilha">${esc(k)}</button>`).join("")}</div></section>` : ""}
@@ -36,17 +40,19 @@ function openPanel(t){
     </section>`;
   const renderNoteLinks = () => { $("#pNoteLinks").innerHTML = linksIn(A.notes[t.id]).map(u => `<li>${ext(u, u)}</li>`).join(""); };
   renderNoteLinks();
-  let h;
+  let h, hadNote = A.hasNoteTopic(t);
   $("#pNote").addEventListener("input", e => {
     clearTimeout(h); $("#pSaved").textContent = "Salvando…";
     h = setTimeout(() => {
       const v = e.target.value; if(v.trim()) A.notes[t.id] = v; else delete A.notes[t.id];
       store.set("jqa-notas", A.notes); $("#pSaved").textContent = "Salvo neste navegador.";
       renderNoteLinks(); renderMap(); renderRoute();
+      if(!done.has(t.id) && A.hasNoteTopic(t) !== hadNote){ hadNote = !hadNote; const y = pBody.scrollTop, pos = e.target.selectionStart; openPanel(t); pBody.scrollTop = y; const n = $("#pNote"); n.focus(); n.setSelectionRange(pos, pos); }
     }, 500);
   });
   pBody.querySelectorAll("#pTech [data-k]").forEach(b => b.onclick = () => { closePanel(); setQuery(b.dataset.k); if(!["mapa","rota"].includes(A.curTab)) location.hash = "mapa"; });
-  $("#pDone").onclick = () => { done.has(t.id) ? done.delete(t.id) : done.add(t.id); store.set("jqa-trilha", [...done]); updateMeter(); renderMap(); renderRoute(); refreshMini(); openPanel(t); };
+  $("#pDone").onclick = () => { if(done.has(t.id)) A.uncompleteTopic(t); else if(!A.completeTopic(t)) return; openPanel(t); };
+  $("#pNoteBook").onclick = () => A.noteFor("topic", t.id);
   $("#pEdit").onclick = () => openEditor(t);
   $("#pFocus").onclick = () => { closePanel(); A.focusTopic(t.id); };
   pBody.querySelectorAll(".ticks input").forEach(cb => cb.onchange = () => {
@@ -55,6 +61,7 @@ function openPanel(t){
     store.set("jqa-checklists", A.checks);
     const sec = cb.closest("section"), kind = cb.dataset.tk[0];
     sec.querySelector(".count").textContent = tickCount(t, kind, kind === "e" ? t.est : t.cc);
+    if(!done.has(t.id)){ const y = pBody.scrollTop, k = cb.dataset.tk; openPanel(t); pBody.scrollTop = y; pBody.querySelector(`[data-tk="${k}"]`)?.focus({preventScroll:true}); }
   });
   $("#pClose").focus();
 }
@@ -130,9 +137,9 @@ function openEditor(t, stageId){
   };
   if(!isNew) $("#tDel").onclick = () => deleteTopic(t, cur);
 }
-function deleteTopic(t, s){
+async function deleteTopic(t, s){
   s = s || stageIn(t);
-  if(!t || !confirm(removeLabel(t, s))) return;
+  if(!t || !await A.ask(removeLabel(t, s))) return;
   snapshot(); const r = removeTopic(t, s);
   saveContent(); refreshTrail(); closePanel(); toast(r === "saiu" ? "Tópico tirado desta trilha." : "Tópico excluído.");
 }

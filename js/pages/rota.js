@@ -15,7 +15,7 @@ function renderRoute(){
   const root = $("#route"), tr = trail();
   $("#routeLead").textContent = tr.oficial
     ? "A trilha em sequência. Estude o essencial de cada etapa antes de avançar; diferenciais ajudam, mas não devem atrasar o essencial. Passe o mouse num tópico para editar ou excluir."
-    : (tr.d ? tr.d + " " : "") + "Sua trilha. Os tópicos que vieram da oficial compartilham o progresso e as anotações com ela; excluir um deles aqui só tira da sua trilha.";
+    : (tr.d ? tr.d + " " : "") + "Sua trilha. Os tópicos que vieram da principal compartilham o progresso e as anotações com ela; excluir um deles aqui só tira da sua trilha.";
   if(!tr.stages.length){ root.innerHTML = `<p class="muted">Esta trilha ainda não tem etapas.</p><button class="btn" id="routeAddStage">${ico("plus")}Adicionar etapa</button>`; return; }
   root.innerHTML = tr.stages.map((s, idx) => {
     const kids = topicsOf(s), d = kids.filter(t => done.has(t.id)).length;

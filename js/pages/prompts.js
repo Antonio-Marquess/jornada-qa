@@ -235,10 +235,10 @@ function editPrompt(p){
     saveContent(); renderPrompts(); toast(isNew ? "Prompt criado." : "Prompt salvo."); openPrompt(target);
   };
 }
-function delPrompt(p){
-  if(!p || !confirm(`Excluir o prompt "${p.t}"?`)) return;
+async function delPrompt(p){
+  if(!p || !await A.ask(`Excluir o prompt "${p.t}"?`)) return;
   A.C.prompts = A.C.prompts.filter(x => x !== p); saveContent(); closePanel(); renderPrompts(); toast("Prompt excluído.");
 }
 
-Object.assign(A, {renderPrompts});
+Object.assign(A, {renderPrompts, openPrompt});
 })(JQA.app);

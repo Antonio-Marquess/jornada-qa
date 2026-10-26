@@ -2,12 +2,14 @@
 
 Um mapa interativo para começar e crescer em qualidade de software, com IA no dia a dia desde o primeiro passo.
 
-**Versão 0.4** · funciona direto no navegador, sem instalar nada.
+**Versão 0.5** · funciona direto no navegador, sem instalar nada.
 
 ## O que tem
 
 | Aba | Conteúdo |
 | --- | --- |
+| Início | Apresentação para quem chega (onde você está, o que tem aqui, como usar) e painel para quem volta: continuar de onde parou, seu caminho na carreira, progresso por etapa, sugestão do dia e anotações |
+| Jornadas | Cada área de estudo é uma jornada com a mesma estrutura. A Jornada QA vem pronta; crie as suas (Dados, Front-end, UX…) clicando no nome no topo da barra lateral |
 | Mapa | Mapa mental da trilha: 5 etapas, 70 tópicos e, dentro de cada tópico, o que estudar, tecnologias e materiais. Ramos abrem e fecham, duplo clique foca |
 | Rota de estudo | A mesma trilha em sequência, com checklist e prévia das anotações |
 | Trilhas próprias | Seletor de trilha no Mapa e na Rota: a Jornada QA oficial ou trilhas montadas por você (escolhendo tópicos da oficial, copiando a oficial inteira ou do zero, com tópicos seus). O progresso é um só |
@@ -30,6 +32,18 @@ O progresso (tópicos dominados, checklists, exercícios e projetos concluídos)
 
 ## Versões
 
+**v0.5**
+
+- **Aba Início:** para quem chega, a apresentação e "Onde você está?"; para quem volta, um painel com números (quanto da trilha domina, itens marcados, dias com estudo, sequência), continuar de onde parou, seu caminho na carreira e gráficos de desempenho: tópicos por etapa, constância por semana, essencial versus diferencial e requisitos do objetivo
+- **Caderno de estudos:** aba nova com vários cadernos, cada um ligado a um minimapa, uma etapa, um tópico ou um assunto livre, com uma página por tópico ou item. Páginas com blocos de texto formatado, checklist, link, imagem (cola com Ctrl+V ou arrasta), arquivo, código e destaque (importante, dúvida, caiu na entrevista, dica); etiquetas e busca em todos os cadernos. Imagens e arquivos ficam no IndexedDB do navegador; fotos grandes são reduzidas
+- **Regra para concluir:** um tópico da trilha (e um item de minimapa com subitens) só conclui com pelo menos 85% dos itens marcados e uma anotação escrita. A porcentagem e a exigência da anotação se ajustam no Caderno; o que já estava concluído continua. "Anotar no caderno" no painel do tópico e do item
+- O backup passa a levar os cadernos, as imagens e os arquivos, o progresso dos minimapas e a regra
+- **Botão Voltar** no topo de todas as abas (menos no Início)
+- A atividade (marcações e anotações por dia) passa a ser registrada para os gráficos; entra no backup
+- **Jornadas modulares:** a plataforma deixa de ser só de QA. Cada jornada (área de estudo) tem trilha, carreira, minimapas, prompts, biblioteca e progresso próprios. A Jornada QA é a jornada pronta; qualquer pessoa cria as suas pelo nome no topo da barra lateral, em branco e com uma carreira em Y genérica para ajustar
+- Conteúdo da Jornada QA movido para `data/qa/`; registro das jornadas e carreira genérica em `data/areas.js`
+- Nas jornadas próprias, as abas IA no dia a dia e Projetos ficam escondidas (são conteúdo específico de QA)
+
 **v0.4**
 
 - **Trilhas próprias:** cada pessoa monta as suas trilhas ao lado da oficial. Seletor no topo do Mapa e da Rota; criar escolhendo tópicos da oficial, copiando a oficial inteira ou em branco; renomear, duplicar e excluir. Os tópicos da oficial compartilham progresso e anotações; tópicos criados numa trilha própria só aparecem nela
@@ -45,7 +59,7 @@ O progresso (tópicos dominados, checklists, exercícios e projetos concluídos)
 - Escritos com as boas práticas de engenharia de prompt da Anthropic, da OpenAI e do Google; guia "Como estes prompts foram escritos" no topo da aba
 - **Copiar prompt** copia o texto completo, pronto para colar; **Copiar como skill** gera o mesmo conteúdo em SKILL.md
 - Filtros por categoria e nível, busca nos dois idiomas, edição por seção nos dois idiomas
-- Prompts em `data/prompts/`, um arquivo por grupo de categorias
+- Prompts em `data/qa/prompts/`, um arquivo por grupo de categorias
 
 **v0.3**
 
@@ -104,7 +118,7 @@ Abra o arquivo `index.html` no navegador. Pronto.
 3. Em **Source**, escolha **Deploy from a branch**, branch `main`, pasta `/ (root)`, e salve.
 4. Em alguns minutos o site estará em `https://SEU-USUARIO.github.io/jornada-qa/`.
 
-Dá para abrir uma aba direto pelo endereço: `#mapa`, `#rota`, `#minimapas`, `#minimapas/seguranca`, `#carreira`, `#ia`, `#prompts`, `#biblioteca` ou `#projetos`.
+Dá para abrir uma aba direto pelo endereço: `#inicio`, `#mapa`, `#rota`, `#minimapas`, `#minimapas/seguranca`, `#carreira`, `#caderno`, `#ia`, `#prompts`, `#biblioteca` ou `#projetos`.
 
 ## Estrutura
 
@@ -113,20 +127,25 @@ jornada-qa/
 ├── index.html              estrutura da página e ordem dos scripts
 ├── css/styles.css          visual (claro e escuro)
 ├── data/                   CONTEÚDO: tudo o que se estuda, separado do código
-│   ├── trilha.js           etapas e tópicos do mapa e da rota
-│   ├── ia.js               aba IA no dia a dia
-│   ├── prompts/            biblioteca de prompts, um arquivo por grupo de categorias
-│   ├── biblioteca.js       links da biblioteca e projetos
-│   ├── minimapas/          um arquivo por área (seguranca.js, …)
-│   ├── carreira.js         níveis da carreira em Y
-│   └── personalizado.js    conteúdo editado pela página (substitui o padrão quando preenchido)
+│   ├── areas.js            registro das jornadas e carreira em Y genérica das jornadas novas
+│   ├── qa/                 a Jornada QA
+│   │   ├── trilha.js       etapas e tópicos do mapa e da rota
+│   │   ├── ia.js           aba IA no dia a dia
+│   │   ├── prompts/        biblioteca de prompts, um arquivo por grupo de categorias
+│   │   ├── biblioteca.js   links da biblioteca e projetos
+│   │   ├── minimapas/      um arquivo por área (seguranca.js, …)
+│   │   └── carreira.js     níveis da carreira em Y de QA
+│   └── personalizado.js    conteúdo da Jornada QA editado pela página (substitui o padrão quando preenchido)
 └── js/                     CÓDIGO: como o conteúdo aparece e se comporta
     ├── core/               base usada por todas as páginas
     │   ├── util.js         utilitários, armazenamento local, avisos, desenho em SVG
     │   ├── estado.js       conteúdo carregado, progresso, anotações, checklists
     │   ├── interface.js    tema, menu lateral, gaveta, botão copiar
-    │   └── mindmap.js      mapa mental: abrir e fechar ramos, níveis, foco, pan e zoom
+    │   ├── mindmap.js      mapa mental: abrir e fechar ramos, níveis, foco, pan e zoom
+    │   └── arquivos.js     imagens e anexos dos cadernos no IndexedDB
     ├── pages/              um arquivo por aba ou recurso
+    │   ├── inicio.js       aba Início e troca de jornadas
+    │   ├── caderno.js      caderno de estudos e regra de conclusão
     │   ├── mapa.js         mapa mental, busca, pan e zoom
     │   ├── rota.js         rota de estudo
     │   ├── topico.js       detalhes do tópico e editor
@@ -142,9 +161,15 @@ jornada-qa/
 
 Os arquivos de `js/` compartilham funções pelo objeto `JQA.app`, e a ordem dos `<script>` no `index.html` importa: `core/` primeiro, `pages/` depois e `app.js` no fim. Não usamos módulos ES (`import`/`export`) nem `.json` porque o navegador bloqueia os dois quando o site é aberto direto do computador, sem servidor.
 
+## Jornadas
+
+Cada jornada guarda os próprios dados no navegador: na Jornada QA as chaves continuam as de sempre (`jqa-notas`, `jqa-conteudo`…); nas jornadas próprias, com o id no fim (`jqa-notas@dados`). O tema e a lista de jornadas valem para todas. O backup em **Seus dados** exporta a jornada aberta.
+
+Hoje só a Jornada QA vem com conteúdo pronto nos arquivos. Para ter uma segunda jornada pronta no repositório (por exemplo, Dados para todo mundo), o próximo passo é carregar o conteúdo por jornada, em `data/<id>/`, sem misturar com o de QA. Até lá, quem quiser publicar uma jornada nova monta pela página e exporta o backup.
+
 ## Editar direto nos arquivos
 
-**Um tópico do mapa** (`data/trilha.js`):
+**Um tópico do mapa** (`data/qa/trilha.js`):
 
 ```js
 {s:"e2", t:"Testes de API", p:"Autonomia", pr:"Essencial",
@@ -172,7 +197,7 @@ Os arquivos de `js/` compartilham funções pelo objeto `JQA.app`, e a ordem dos
 | `lab` | Laboratório para copiar (opcional) |
 | `cc` | Critérios de conclusão (lista) |
 
-**Um minimapa** (`data/minimapas/<area>.js`): copie `seguranca.js`, troque o conteúdo e acrescente o `<script>` no `index.html`, junto dos outros minimapas.
+**Um minimapa** (`data/qa/minimapas/<area>.js`): copie `seguranca.js`, troque o conteúdo e acrescente o `<script>` no `index.html`, junto dos outros minimapas.
 
 ```js
 (JQA.MINIMAPAS = JQA.MINIMAPAS || []).push({
@@ -192,7 +217,7 @@ Um item pode ter `filhos:[...]` (outros itens), e seus materiais (`l`) aparecem 
 
 Tipos de ramo: `fund` (Fundamentos), `est` (O que estudar, em ordem), `ferr` (Ferramentas), `prat` (Onde praticar) e `trilha` (tópicos da trilha, pelo id). O id de um tópico é a etapa mais o título sem acentos, por exemplo `e3-performance-basica`.
 
-**Um item da biblioteca** (`data/biblioteca.js`):
+**Um item da biblioteca** (`data/qa/biblioteca.js`):
 
 ```js
 {tipo:"artigo", t:"Título", u:"https://...", e:"e3", tema:"Automação", d:"Por que vale ler."}
@@ -200,7 +225,7 @@ Tipos de ramo: `fund` (Fundamentos), `est` (O que estudar, em ordem), `ferr` (Fe
 
 Tipos: `artigo`, `doc`, `pratica`, `repo`, `curso`, `canal`, `roadmap`, `comunidade`. Use `pago:true` para cursos pagos e `e:"todas"` para itens que servem a qualquer etapa.
 
-**Um prompt** (`data/prompts/<grupo>.js`): cada campo de texto tem a versão em inglês com o sufixo `_en`.
+**Um prompt** (`data/qa/prompts/<grupo>.js`): cada campo de texto tem a versão em inglês com o sufixo `_en`.
 
 ```js
 {id:"meu-prompt", c:"Categoria", n:"Iniciante",
@@ -216,7 +241,7 @@ Tipos: `artigo`, `doc`, `pratica`, `repo`, `curso`, `canal`, `roadmap`, `comunid
 
 A página monta o texto completo a partir dessas seções.
 
-**Um item da biblioteca** (`data/biblioteca.js`):
+**Um item da biblioteca** (`data/qa/biblioteca.js`):
 
 ```js
 {tipo:"artigo", t:"Título", u:"https://...", e:"e3", tema:"Automação", d:"Por que vale ler."}
@@ -224,7 +249,7 @@ A página monta o texto completo a partir dessas seções.
 
 Tipos: `artigo`, `doc`, `pratica`, `repo`, `curso`, `canal`, `roadmap`, `comunidade`. Use `pago:true` para cursos pagos e `e:"todas"` para itens que servem a qualquer etapa.
 
-**Um prompt** (`data/prompts/<grupo>.js`):
+**Um prompt** (`data/qa/prompts/<grupo>.js`):
 
 ```js
 {id:"meu-prompt", c:"Categoria", n:"Iniciante",

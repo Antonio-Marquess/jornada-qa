@@ -48,7 +48,7 @@ function renderLib(rebuild){
       if(ed){ editingLib = ed.dataset.ledit; renderLib(); $(`[data-lform="${editingLib}"] [name=t]`)?.focus(); }
       if(cancel){ editingLib = null; renderLib(); }
       if(del){ const it = A.C.lib.find(x => x.id === del.dataset.ldel);
-        if(it && confirm(`Excluir "${it.t}" da biblioteca?`)){ A.C.lib = A.C.lib.filter(x => x !== it); saveContent(); renderLib(); toast("Item excluído."); } }
+        if(it) A.ask(`Excluir "${it.t}" da biblioteca?`).then(ok => { if(ok){ A.C.lib = A.C.lib.filter(x => x !== it); saveContent(); renderLib(); toast("Item excluído."); } }); }
     });
     $("#lList").addEventListener("submit", e => {
       e.preventDefault(); const f = e.target, id = f.dataset.lform;

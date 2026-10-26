@@ -1,10 +1,15 @@
 /* Jornada QA — Estado: conteúdo editável (com atualização de versões antigas), progresso, anotações e checklists. */
 (function(A){
-const {J, $, clone, uid, store, toast} = A;
+const {J, $, clone, uid, store, toast, isOfficialArea} = A;
+const OF_AREA = isOfficialArea();
 
 /* ---------- conteúdo editável ---------- */
 const COLORS = ["--e1","--e2","--e3","--e4","--e5"];
+/* carreira em Y genérica para jornadas novas */
+const baseCareer = () => clone(J.CARREIRA_BASE || []).map(n => ({eq:[], resumo:"", espera:[], topicos:[], minis:[], extra:[], provar:[], comport:[], trava:[], ...n}));
 function defaults(){
+  if(!OF_AREA) return {v:2, stages:[{id:"e1", n:"1", name:"Primeira etapa", goal:"", color:"--e1"}], topics:[], prompts:[], promptsV:4,
+    lib:[], minis:[], mapas:[], trilhas:[], carreiras:[], carreira:baseCareer()};
   return {v:2, stages:clone(J.STAGES), topics:clone(J.TOPICS),
     prompts:clone(J.PROMPTS).map(p => ({id:p.id || uid("p"), ...p})), promptsV:4,
     lib:clone(J.LIB).map(i => ({id:uid("l"), ...i})),
@@ -25,7 +30,7 @@ function normalize(c){
   c.topics.forEach(t => { t.id = t.id || uid("t"); t.tech = t.tech || []; t.l = t.l || []; t.est = t.est || []; t.cc = t.cc || []; t.lab = t.lab || ""; });
   c.prompts.forEach(p => { p.id = p.id || uid("p"); p.n = p.n || "Iniciante"; });
   /* prompts salvos antes da versão bilíngue: completa com inglês, nível e descrição, e acrescenta os novos */
-  if((c.promptsV || 1) < 2){
+  if(OF_AREA && (c.promptsV || 1) < 2){
     const base = J.PROMPTS || [], byT = new Map(base.map(p => [p.t, p]));
     c.prompts.forEach(p => { const o = byT.get(p.t); if(!o) return;
       ["n","t_en","d","d_en","quando_en","p_en","rev","rev_en"].forEach(k => { if(p[k] == null) p[k] = o[k]; });
@@ -36,7 +41,7 @@ function normalize(c){
   }
   /* versão 4: prompts reescritos no formato de skill (objetivo, instruções, exemplo, checklist). Os prompts padrão são trocados
    * pela versão nova; os criados pela pessoa continuam como estão. */
-  if(c.promptsV < 4){
+  if(OF_AREA && c.promptsV < 4){
     const base = J.PROMPTS || [], ids = new Set(base.map(p => p.id));
     const meus = c.prompts.filter(p => !ids.has(p.id) && !base.some(o => o.t === p.t));
     c.prompts = [...meus, ...clone(base)];
@@ -46,14 +51,14 @@ function normalize(c){
   /* minimapas: os que vêm dos arquivos entram sozinhos, menos os que a pessoa excluiu */
   c.minis = c.minis || [];
   const tem = new Set(c.minis.map(m => m.id)), fora = new Set(c.minisExcluidos || []);
-  (J.MINIMAPAS || []).forEach(m => { if(!tem.has(m.id) && !fora.has(m.id)) c.minis.push(clone(m)); });
+  if(OF_AREA) (J.MINIMAPAS || []).forEach(m => { if(!tem.has(m.id) && !fora.has(m.id)) c.minis.push(clone(m)); });
   c.minis.forEach(idsMini);
   c.mapas = c.mapas || [];
-  /* trilhas próprias: cada etapa guarda a lista de tópicos (da oficial ou criados pela pessoa) */
+  /* trilhas próprias: cada etapa guarda a lista de tópicos (da principal ou criados pela pessoa) */
   c.trilhas = c.trilhas || [];
   c.trilhas.forEach(tr => { tr.id = tr.id || uid("tr"); tr.stages = tr.stages || [];
     tr.stages.forEach((s, i) => { s.id = s.id || uid("u"); s.ids = s.ids || []; s.color = s.color || COLORS[i % COLORS.length]; s.n = s.n || String(i + 1); s.goal = s.goal || ""; }); });
-  if(!c.carreira?.length) c.carreira = clone(J.CARREIRA || []);
+  if(!c.carreira?.length) c.carreira = OF_AREA ? clone(J.CARREIRA || []) : baseCareer();
   c.carreiras = c.carreiras || [];
   [c.carreira, ...c.carreiras.map(k => k.niveis = k.niveis || [])].forEach(list => list.forEach(n => {
     ["espera","provar","comport","trava","topicos","minis","extra","eq"].forEach(k => { n[k] = n[k] || []; }); n.escopo = n.escopo || ""; n.resumo = n.resumo || ""; }));
@@ -63,7 +68,7 @@ function normalize(c){
  * (o que estudar, materiais, laboratório, critérios) e acrescenta os tópicos novos,
  * sem desfazer o que a pessoa editou. */
 function upgrade(c){
-  if(!c || c.v >= 2) return c;
+  if(!c || c.v >= 2 || !OF_AREA) return c;
   const base = new Map(J.TOPICS.map(t => [t.id, t])), have = new Set(c.topics.map(t => t.id));
   c.topics.forEach(t => {
     const o = base.get(t.id); if(!o) return;
@@ -80,7 +85,7 @@ function upgrade(c){
   c.v = 2; store.set("jqa-conteudo", c);
   return c;
 }
-A.C = normalize(upgrade(store.get("jqa-conteudo", null)) || (J.OVERRIDE ? clone(J.OVERRIDE) : defaults()));
+A.C = normalize(upgrade(store.get("jqa-conteudo", null)) || (OF_AREA && J.OVERRIDE ? clone(J.OVERRIDE) : defaults()));
 const isLocal = () => !!store.get("jqa-conteudo", null);
 function saveContent(){ if(!store.set("jqa-conteudo", A.C)) toast("Não foi possível salvar neste navegador."); }
 
@@ -99,14 +104,14 @@ A.notes = store.get("jqa-notas", {});
 A.checks = store.get("jqa-checklists", {});   /* {idDoTópico: ["e0","c2",…]} itens de estudo e critérios marcados */
 
 /* ---------- trilhas: a oficial (etapas e tópicos do conteúdo) e as próprias de cada pessoa ----------
- * Uma trilha própria tem etapas com a lista de ids dos tópicos. Os tópicos são os mesmos da oficial
+ * Uma trilha própria tem etapas com a lista de ids dos tópicos. Os tópicos são os mesmos da principal
  * (então o progresso vale nas duas) ou tópicos criados pela pessoa, que ficam em A.C.topics com s = id da etapa própria. */
 const OFICIAL = "oficial";
 A.trilhaId = store.get("jqa-trilha-atual", OFICIAL);
 function trail(){
   const t = A.C.trilhas.find(x => x.id === A.trilhaId);
   if(!t) A.trilhaId = OFICIAL;
-  return t || {id:OFICIAL, t:"Jornada QA", oficial:true, stages:A.C.stages};
+  return t || {id:OFICIAL, t:A.area().titulo, oficial:true, stages:A.C.stages};
 }
 function setTrail(id){ A.trilhaId = id; store.set("jqa-trilha-atual", id); }
 const findTopic = id => A.C.topics.find(t => t.id === id);
@@ -148,7 +153,7 @@ function removeTopic(t, s){
   purgeTopic(t); return "apagado";
 }
 const removeLabel = (t, s) => keeps(t, s)
-  ? `Tirar "${t.t}" desta trilha? Ele continua na trilha oficial, com seu progresso.`
+  ? `Tirar "${t.t}" desta trilha? Ele continua na trilha principal, com seu progresso.`
   : `Excluir o tópico "${t.t}"? As anotações dele também serão apagadas.`;
 function deleteStage(s){
   const tr = trail();
@@ -162,7 +167,7 @@ function newStageIn(afterId){
   if(!trail().oficial) s.ids = [];
   st.splice(i + 1, 0, s); return s;
 }
-/* monta as etapas de uma trilha própria a partir de tópicos escolhidos, na ordem e nas etapas da oficial */
+/* monta as etapas de uma trilha própria a partir de tópicos escolhidos, na ordem e nas etapas da principal */
 function stagesFrom(ids){
   const want = new Set(ids);
   return A.C.stages.map(s => ({id:uid("u"), n:s.n, name:s.name, goal:s.goal, color:s.color,
@@ -182,5 +187,5 @@ function updateMeter(){
   $("#progName").textContent = trail().oficial ? "Seu progresso" : trail().t;
 }
 
-Object.assign(A, {COLORS, defaults, normalize, upgrade, isLocal, saveContent, snapshot, undo, done, doneProj, doneEx, stageOf, stageLabel, OFICIAL, trail, setTrail, findTopic, topicsOf, trailTopics, isOfficialTopic, stageIn, blankTopic, placeTopic, purgeTopic, removeTopic, removeLabel, keeps, deleteStage, newStageIn, stagesFrom, DEPTHS, PRIOS, updateMeter});
+Object.assign(A, {COLORS, baseCareer, defaults, normalize, upgrade, isLocal, saveContent, snapshot, undo, done, doneProj, doneEx, stageOf, stageLabel, OFICIAL, trail, setTrail, findTopic, topicsOf, trailTopics, isOfficialTopic, stageIn, blankTopic, placeTopic, purgeTopic, removeTopic, removeLabel, keeps, deleteStage, newStageIn, stagesFrom, DEPTHS, PRIOS, updateMeter});
 })(JQA.app);

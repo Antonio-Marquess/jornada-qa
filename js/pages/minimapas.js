@@ -39,10 +39,10 @@ function renderMiniHome(){
   const areas = MINIS().filter(m => !m.custom), meus = MINIS().filter(m => m.custom);
   $("#miniHome").innerHTML = `
     <p class="lead">Um mapa mental por área, para ir além da trilha, e os seus próprios mapas. Tudo se edita no mapa, como no XMind ou no MindMeister: clique num nó e use a barra que aparece, ou o teclado (Tab cria filho, Enter cria irmão, F2 edita, Delete exclui, Ctrl+Z desfaz).</p>
-    <h3>Áreas</h3>
+    ${A.isOfficialArea() || areas.length ? `<h3>Áreas</h3>
     <div class="minicards">${areas.map(card).join("")}
-      <div class="minicard soon"><span class="mi">${ico("plus")}</span><b>Próximas áreas</b><p>Performance, Automação, API, IA para QA, Mobile, Dados e DevOps.</p></div>
-    </div>
+      ${A.isOfficialArea() ? `<div class="minicard soon"><span class="mi">${ico("plus")}</span><b>Próximas áreas</b><p>Performance, Automação, API, IA para QA, Mobile, Dados e DevOps.</p></div>` : ""}
+    </div>` : ""}
     <h3>Meus mapas</h3>
     <div class="minicards">${meus.map(card).join("")}
       <button class="minicard newmap" id="newMap"><span class="mi">${ico("plus")}</span><b>Novo mapa</b><p>Um mapa mental seu, do zero: um curso, um projeto, uma ferramenta que você está estudando.</p></button>
@@ -76,7 +76,17 @@ function toggleTopicCheck(t, key){
   if(set.size) A.checks[t.id] = [...set]; else delete A.checks[t.id];
   store.set("jqa-checklists", A.checks); refreshMini();
 }
-function toggleDone(it){ doneMini.has(it.id) ? doneMini.delete(it.id) : doneMini.add(it.id); store.set("jqa-minimapas", [...doneMini]); refreshMini(); }
+/* marcar como estudado: um item com subitens segue a regra de conclusão do caderno */
+function toggleDone(it){
+  if(!doneMini.has(it.id)){ const v = A.canCompleteMini(it); if(!v.ok){ toast(A.whyNot(v)); return false; } }
+  setDone(it.id, !doneMini.has(it.id)); return true;
+}
+function setDone(id, on){ on ? doneMini.add(id) : doneMini.delete(id); store.set("jqa-minimapas", [...doneMini]); refreshMini(); }
+/* acha um item pelo id em qualquer minimapa */
+function findItem(id){
+  for(const m of MINIS()) for(const r of m.ramos){ const it = flat(r.itens).find(x => x.id === id); if(it) return {m, r, it}; }
+  return null;
+}
 
 /* ---------- árvore do mapa: área › ramos › itens (e subitens) › materiais ---------- */
 function itemNode(m, r, arr, it, cor, i){
@@ -99,8 +109,9 @@ function itemNode(m, r, arr, it, cor, i){
     aria:`${it.t}${it.tag ? ", " + it.tag : ""}${doneMini.has(it.id) ? ", estudado" : ""}`, openLabel:"Detalhes", onOpen:() => openMiniItem(m, r, it),
     edit:v => mutate(() => { it.t = v; }),
     add:() => mutate(() => { const n = newItem(); (it.filhos = it.filhos || []).push(n); return n.id; }),
-    del:() => { if((it.filhos || []).length && !confirm(`Excluir "${it.t}" e os ${it.filhos.length} itens dentro dele?`)) return false;
-      mutate(() => { arr.splice(i, 1); flat([it]).forEach(x => doneMini.delete(x.id)); store.set("jqa-minimapas", [...doneMini]); }); },
+    del:() => { const go = () => mutate(() => { arr.splice(i, 1); flat([it]).forEach(x => doneMini.delete(x.id)); store.set("jqa-minimapas", [...doneMini]); });
+      if(!(it.filhos || []).length) return go();
+      A.ask(`Excluir "${it.t}" e os ${it.filhos.length} itens dentro dele?`).then(ok => { if(ok){ go(); mmm.render(); } }); return false; },
     accepts:["item"], drop:n => mutate(() => moveItem(m, n.id, it.filhos = it.filhos || [])),
     children:[...(it.filhos || []).map((f, j) => itemNode(m, r, it.filhos, f, cor, j)),
       ...(it.l || []).map(([lab, url, nota], j) => ({id:it.id + "/l" + j, label:"↗ " + lab, editValue:lab, color:cor,
@@ -121,18 +132,19 @@ function buildMini(){
         edit:v => mutate(() => { r.t = v; }),
         add:() => mutate(() => { const n = newItem(); r.itens.push(n); return n.id; }),
         sib:() => mutate(() => { const n = {id:uid("r"), t:"Novo ramo", itens:[]}; m.ramos.splice(ri + 1, 0, n); return n.id; }),
-        del:() => { if(r.itens.length && !confirm(`Excluir o ramo "${inf.t}" e os ${r.itens.length} itens dele?`)) return false;
-          mutate(() => { m.ramos.splice(ri, 1); }); },
+        del:() => { if(!r.itens.length) return mutate(() => { m.ramos.splice(ri, 1); });
+          A.ask(`Excluir o ramo "${inf.t}" e os ${r.itens.length} itens dele?`).then(ok => { if(ok){ mutate(() => { m.ramos.splice(ri, 1); }); mmm.render(); } }); return false; },
         accepts:["item"], drop:n => mutate(() => moveItem(m, n.id, r.itens)),
         children:r.itens.map((it, i) => itemNode(m, r, r.itens, it, inf.cor, i))}; })};
 }
 function deleteMap(m){
-  if(!confirm(`Excluir o mapa "${m.t}" inteiro? Dá para desfazer com Ctrl+Z logo em seguida.`)) return false;
+  A.ask(`Excluir o mapa "${m.t}" inteiro? Dá para desfazer com Ctrl+Z logo em seguida.`).then(ok => { if(!ok) return;
   mutate(() => {
     A.C.minis = A.C.minis.filter(x => x !== m);
     if(!m.custom) A.C.minisExcluidos = [...new Set([...(A.C.minisExcluidos || []), m.id])];
   });
-  location.hash = "minimapas"; return false;
+  location.hash = "minimapas"; });
+  return false;
 }
 const mmm = createMindMap({svg:$("#msvg"), key:"minimapas", build:buildMini, focusBar:$("#mFocusBar"), undo,
   defaultOpen:n => n.depth === 1 && !matchMedia("(max-width:820px)").matches,
@@ -217,8 +229,10 @@ function openMiniItem(m, r, it){
   const inf = ramoInfo(r, m.ramos.indexOf(r)), on = doneMini.has(it.id);
   showPanel(`${m.t} · ${inf.t}`, inf.cor, it.t);
   pBody.innerHTML = `
-    <div class="actions"><button class="btn${on ? "" : " primary"}" id="mDone" aria-pressed="${on}">${on ? "Estudado" : "Marcar como estudado"}</button>
+    <div class="actions"><button class="btn${on ? "" : " primary"}" id="mDone" aria-pressed="${on}"${!on && !A.canCompleteMini(it).ok ? ' aria-disabled="true"' : ""}>${on ? "Estudado" : "Marcar como estudado"}</button>
+      <button class="btn" id="mNote">${ico("book")}Anotar no caderno</button>
       <button class="btn" id="mEdit">${ico("pen")}Editar</button></div>
+    ${!on && (it.filhos || []).length && !A.canCompleteMini(it).ok ? `<p class="gatemsg">${esc(A.whyNot(A.canCompleteMini(it)))}</p>` : ""}
     ${it.tag ? `<p style="margin:0"><span class="chip">${esc(it.tag)}</span></p>` : ""}
     ${it.d ? `<p style="margin:0">${esc(it.d)}</p>` : ""}
     ${it.q ? `<section><h4>Quando usar</h4><p style="margin:0">${esc(it.q)}</p></section>` : ""}
@@ -227,6 +241,7 @@ function openMiniItem(m, r, it){
       ${it.lab ? `<p class="labhead">Comandos</p><div class="code lab">${copyBtn(it.lab)}<pre>${esc(it.lab)}</pre></div>` : ""}</section>` : ""}
     ${!it.d && !it.q && !it.l?.length && !it.x && !it.lab ? '<p class="muted" style="margin:0">Ainda sem detalhes. Use Editar para acrescentar explicação, materiais e prática.</p>' : ""}`;
   $("#mDone").onclick = () => { toggleDone(it); openMiniItem(m, r, it); };
+  $("#mNote").onclick = () => A.noteFor("mini", it.id);
   $("#mEdit").onclick = () => editItem(m, r, it);
   $("#pClose").focus();
 }
@@ -257,5 +272,6 @@ function editItem(m, r, it){
 }
 function leaveMini(){ curMini = null; }
 
+A.mini = {flat, doneMini, ramoInfo, find:findItem, setDone, toggleDone};
 Object.assign(A, {openMini, refreshMini, leaveMini});
 })(JQA.app);
