@@ -106,6 +106,7 @@ $("#carreiraPage").addEventListener("click", e => {
   else if(b.dataset.ydel){ const n = byId(yOpen), [k, i] = b.dataset.ydel.split(":"), px = (GRUPOS.find(g => g[0] === k) || [])[1];
     mutate(() => { if(k === "topicos") n.topicos = n.topicos.filter(x => x !== i); else { n[k].splice(+i, 1); if(px && px !== "t") remap(n, px, j => j === +i ? -1 : j > +i ? j - 1 : j); } }); }
   else if(b.dataset.yt) A.openPanel(findTopic(b.dataset.yt));
+  else if(b.dataset.yav){ const x = A.compFind(b.dataset.yav); if(x) location.hash = `autoavaliacao/${x.a.id}/${x.it.id}`; }
   else if(b.dataset.yedit) startItemEdit(b);
   else if(b.dataset.yact){ const n = byId(yOpen), a = b.dataset.yact;
     if(a === "close"){ yOpen = null; renderCarreira(); }
@@ -133,7 +134,7 @@ function toggleReq(id, forceOpen){
   yOpen = (yOpen === id && !forceOpen) ? null : id; renderCarreira();
   if(yOpen) requestAnimationFrame(() => document.querySelector(mobile() ? `.ystep.open` : ".yreq")?.scrollIntoView({behavior:"smooth", block:"nearest"}));
 }
-const REQ = [["escopo","Escopo e cargos"],["espera","O que se espera"],["estudar","O que estudar"],["provar","O que fazer para provar"],["comport","Comportamentos"],["trava","O que costuma travar"]];
+const REQ = [["escopo","Escopo e cargos"],["espera","O que se espera"],["comp","Competências técnicas"],["estudar","O que estudar"],["provar","O que fazer para provar"],["comport","Comportamentos"],["trava","O que costuma travar"]];
 function reqItems(n, g){
   const on = new Set(st.marc[n.id] || []);
   const del = key => `<button class="yrx" data-ydel="${key}" aria-label="Excluir" title="Excluir">${ico("trash")}</button>`;
@@ -143,6 +144,7 @@ function reqItems(n, g){
   if(g === "escopo") return `<div class="yri plain"><span><b>Escopo:</b> ${esc(n.escopo || "não definido")}</span>${tools("escopo:0", false)}</div>
     <div class="yri plain"><span><b>Nas empresas:</b> ${esc(n.eq.join(", ") || "não definido")}</span>${tools("eq:0", false)}</div>
     <div class="yri plain"><span><b>Resumo:</b> ${esc(n.resumo || "não definido")}</span>${tools("resumo:0", false)}</div>`;
+  if(g === "comp") return compItems(n, del);
   if(g === "estudar"){
     const tops = topicsOfLevel(n), minis = n.minis.map(id => (A.C.minis || []).find(m => m.id === id)).filter(Boolean);
     return tops.map(t => `<div class="yri topic${done.has(t.id) ? " on" : ""}"><button class="yrt" data-yt="${esc(t.id)}"><span class="cdot"></span><span>${esc(t.t)}<small>${esc(stageOf(t.s) ? "Etapa " + stageOf(t.s).n : "")}${done.has(t.id) ? " · dominado" : ""}</small></span></button>${del("topicos:" + t.id)}</div>`).join("")
@@ -157,11 +159,20 @@ function reqItems(n, g){
     + (g === "provar" && n[g].length ? `<p class="yrhint">Marque só o que dá para mostrar: link, documento, número ou alguém que confirme.</p>` : "")
     + addForm(g);
 }
+/* competências técnicas exigidas pelo nível, com o seu nível atual de cada uma (aba Autoavaliação) */
+function compItems(n, del){
+  const opts = A.C.comp.flatMap(a => a.itens.map(it => `<option value="${esc(it.id)}">${esc(a.t)} · ${esc(it.t)}</option>`)).join("");
+  return (n.comp || []).map((r, i) => { const s = A.reqStatus(r), cur = s.best ? s.best.l.n : 0;
+      return `<div class="yri comp${s.ok ? " on" : ""}"><button class="yrt" data-yav="${esc(s.best?.it.id || r.ids[0])}"><span class="cdot"></span><span>${esc(s.nome)} <b class="avb lv${r.n}">N${r.n}</b><small>${s.ok ? "atendido" : `você: ${cur ? "N" + cur : "ainda não"}`}${r.ids.length > 1 ? ` · vale ${r.ids.map(id => A.compFind(id)?.it.t).filter(Boolean).join(", ")}` : ""}</small></span></button>${del("comp:" + i)}</div>`; }).join("")
+    + (opts ? `<form class="yradd ycomp" data-ycomp><select class="in" name="c" aria-label="Competência">${opts}</select><select class="in" name="n" aria-label="Nível exigido"><option value="1">N1 · Conheço</option><option value="2" selected>N2 · Pratico</option><option value="3">N3 · Domino</option></select><button class="btn sm" type="submit">${ico("plus")}</button></form>` : `<p class="yrhint">Crie competências na aba Autoavaliação para exigir aqui.</p>`)
+    + `<p class="yrhint">Os níveis vêm da aba Autoavaliação. <a href="#autoavaliacao">Avaliar minhas competências</a></p>`;
+}
 function reqCount(n, g){
   const on = new Set(st.marc[n.id] || []);
   if(g === "escopo") return "";
   if(g === "estudar"){ const t = topicsOfLevel(n); return `${t.filter(x => done.has(x.id)).length}/${t.length}`; }
   if(g === "trava") return String(n.trava.length);
+  if(g === "comp"){ const rs = (n.comp || []).map(A.reqStatus); return `${rs.filter(r => r.ok).length}/${rs.length}`; }
   const px = {espera:"e", provar:"p", comport:"c"}[g]; return `${n[g].filter((_, i) => on.has(px + i)).length}/${n[g].length}`;
 }
 function reqPane(n){
@@ -202,6 +213,8 @@ $("#carreiraPage").addEventListener("submit", e => {
     if(!v && !["escopo","resumo","eq"].includes(k)){ ef.v.focus(); return; }
     mutate(() => { if(k === "escopo" || k === "resumo") n[k] = v; else if(k === "eq") n.eq = v.split(",").map(x => x.trim()).filter(Boolean); else n[k][+i] = v; });
     toast("Salvo."); return; }
+  const fc = e.target.closest("[data-ycomp]");
+  if(fc){ e.preventDefault(); const n = byId(yOpen); mutate(() => { n.comp = n.comp || []; n.comp.push({ids:[fc.c.value], n:+fc.n.value}); }); return; }
   const f = e.target.closest("[data-yaddk]"); if(!f) return; e.preventDefault();
   const v = f.v.value.trim(), n = byId(yOpen), k = f.dataset.yaddk; if(!v || !n) return;
   mutate(() => { n[k].push(v); });
@@ -277,6 +290,8 @@ function openLevel(n){
       ${tops.length || n.extra.length ? `<button class="btn sm primary" id="cTrail">${ico("route")}Criar minha trilha para este nível</button>` : `<p class="muted" style="margin:0">Nenhum tópico ligado a este nível. Ligue tópicos em Editar.</p>`}
     </section>
     ${n.provar.length ? `<section><h4>O que fazer para provar <span class="count">${cnt(n, "provar", "p")}</span></h4><p class="muted" style="margin:0 0 6px">Marque só o que você consegue mostrar: link, documento, número ou alguém que confirme.</p>${ticks(n, "provar", "p")}</section>` : ""}
+    ${(n.comp || []).length ? `<section><h4>Competências técnicas <span class="count">${(n.comp || []).map(A.reqStatus).filter(r => r.ok).length}/${n.comp.length}</span></h4><ul class="ctopics">${n.comp.map(r => { const s = A.reqStatus(r);
+      return `<li><a class="ctop${s.ok ? " on" : ""}" href="#autoavaliacao/${esc(s.best?.a.id || "")}/${esc(s.best?.it.id || "")}"><span class="cdot" aria-hidden="true"></span><span>${esc(s.nome)} · N${r.n}</span><small>${s.ok ? "atendido" : "você: " + (s.best && s.best.l.n ? "N" + s.best.l.n : "ainda não")}</small></a></li>`; }).join("")}</ul></section>` : ""}
     ${n.comport.length ? `<section><h4>Comportamentos <span class="count">${cnt(n, "comport", "c")}</span></h4>${ticks(n, "comport", "c")}</section>` : ""}
     ${n.trava.length ? `<section><h4>O que costuma travar</h4><ul class="ctrava">${n.trava.map(x => `<li>${esc(x)}</li>`).join("")}</ul></section>` : ""}
     ${nx.length ? `<section><h4>Próximo passo</h4><div class="cnext">${nx.map(x => `<button class="btn sm" data-next="${esc(x.id)}" style="--c:var(${(RAMOS[x.ramo] || RAMOS.base).c})"><i class="cdotc"></i>${esc(x.nome)}</button>`).join("")}</div></section>` : ""}`;
@@ -538,7 +553,8 @@ function careerSummary(){
   let next = null;
   if(alvo){ const on = new Set(st.marc[alvo.id] || []);
     for(const [k, px] of KINDS){ const i = alvo[k].findIndex((_, j) => !on.has(px + j)); if(i >= 0){ next = alvo[k][i]; break; } } }
-  return {career:career(), cur, alvo, gap, next, pct:gap ? pct(gap) : 0, niveis:N().length};
+  const comp = alvo ? (alvo.comp || []).map(A.reqStatus) : [];
+  return {career:career(), cur, alvo, gap, next, pct:gap ? pct(gap) : 0, niveis:N().length, comp};
 }
 function showLevel(id){ setMode("escada"); yOpen = id; location.hash = "carreira"; requestAnimationFrame(() => renderCarreira()); }
 Object.assign(A, {careerSummary, showLevel, renderCarreira, openLevel, carreiraState:st, focusLevel, fitCareer:() => { if(mode === "mapa") requestAnimationFrame(() => cmm.fit()); }});

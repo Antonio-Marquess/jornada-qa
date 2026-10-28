@@ -1,8 +1,8 @@
-# Jornada QA — Além do Teste
+# Jornada · Além do básico
 
-Um mapa interativo para começar e crescer em qualidade de software, com IA no dia a dia desde o primeiro passo.
+Trilhas de estudo em mapa mental, caderno de estudos, autoavaliação e carreira em Y. A **Jornada QA** vem pronta, para começar e crescer em qualidade de software com IA desde o primeiro passo; crie as suas jornadas para outras áreas.
 
-**Versão 0.5** · funciona direto no navegador, sem instalar nada.
+**Versão 0.6** · funciona direto no navegador, sem instalar nada.
 
 ## O que tem
 
@@ -10,12 +10,14 @@ Um mapa interativo para começar e crescer em qualidade de software, com IA no d
 | --- | --- |
 | Início | Apresentação para quem chega (onde você está, o que tem aqui, como usar) e painel para quem volta: continuar de onde parou, seu caminho na carreira, progresso por etapa, sugestão do dia e anotações |
 | Jornadas | Cada área de estudo é uma jornada com a mesma estrutura. A Jornada QA vem pronta; crie as suas (Dados, Front-end, UX…) clicando no nome no topo da barra lateral |
+| Trilha | Uma página com três abas: Mapa, Rota e Minimapas |
 | Mapa | Mapa mental da trilha: 5 etapas, 70 tópicos e, dentro de cada tópico, o que estudar, tecnologias e materiais. Ramos abrem e fecham, duplo clique foca |
 | Rota de estudo | A mesma trilha em sequência, com checklist e prévia das anotações |
 | Trilhas próprias | Seletor de trilha no Mapa e na Rota: a Jornada QA oficial ou trilhas montadas por você (escolhendo tópicos da oficial, copiando a oficial inteira ou do zero, com tópicos seus). O progresso é um só |
+| Autoavaliação | Matriz de competências: 12 áreas e 34 tecnologias e assuntos de QA (Playwright, Cypress, SQL, OWASP, k6…), em cada um você clica no nível que descreve você hoje: 0 (ainda não), 1 (conheço), 2 (pratico) ou 3 (domino), com o que cada nível significa |
 | Carreira | Carreira em Y: base comum (estágio a sênior), trilha técnica (especialista, staff), trilha de gestão (coordenação, gerência, head) e líder técnico como ponte. Cada nível diz o que se espera, o que estudar, o que fazer para provar e o que costuma travar, com autoavaliação |
 | Minimapas | Um mapa mental por área (Segurança e, em breve, outras) com fundamentos, o que estudar, ferramentas, onde praticar e os tópicos da trilha ligados. Também os seus próprios mapas, criados do zero |
-| IA no dia a dia | Onde a IA ajuda, MCP explicado, servidores MCP úteis para QA, agentes de teste do Playwright, regras de ouro e exercícios |
+| IA para QA | Caderno pronto dentro do Caderno de estudos: onde a IA ajuda, MCP explicado, servidores MCP úteis para QA, agentes de teste do Playwright, regras de ouro e exercícios. Editável como qualquer caderno |
 | Prompts | 72 prompts de QA em português e inglês, no formato de skill (objetivo, instruções, exemplo, formato e checklist), com nível, categoria e botões para copiar o prompt ou a skill |
 | Biblioteca | Artigos, documentação, sites para praticar, repositórios, cursos, canais, roadmaps e comunidades, com filtros por tipo, etapa e tema |
 | Projetos | Projetos guiados para o portfólio, em ordem de dificuldade |
@@ -31,6 +33,29 @@ Cada tópico abre com:
 O progresso (tópicos dominados, checklists, exercícios e projetos concluídos), as trilhas próprias, a autoavaliação de carreira e as anotações ficam salvos no navegador de cada pessoa. Cada pessoa, no seu navegador, tem os seus; para levar para outro computador, use **Seus dados › Exportar backup**.
 
 ## Versões
+
+A versão atual aparece na barra lateral, ao lado de "Alternar tema"; clicar nela mostra as novidades. Ao publicar uma versão nova, atualize `data/versoes.js`.
+
+**v0.6**
+
+- **Aba Autoavaliação:** matriz de competências por área (fundamentos, API, automação web, mobile, programação, dados, CI, performance, segurança, IA, processo). Em cada tecnologia, um clique no nível que descreve você hoje (0 a 3); "O que significa cada nível" mostra frases concretas para a escolha ser honesta
+- Mapa de calor de todas as competências, contagem por nível e gráfico de evolução a cada atualização
+- Competências e áreas editáveis; dá para acrescentar a tecnologia que você usa, com frases de modelo para ajustar
+- **Carreira:** cada nível exige competências técnicas (por exemplo, QA Júnior pede um framework de automação web no nível 1 e testes de API no nível 2), com o seu nível ao lado; dá para acrescentar e tirar exigências
+- Níveis com nome e cor próprios: N1 (Conheço, laranja), N2 (Pratico, azul), N3 (Domino, verde)
+- **Meu resultado:** perfil técnico com gráfico de rosca, o que falta para o objetivo de carreira (de N? para N?) e um cartão por área
+- **Trilha:** o mapa mental mostra N1, N2 ou N3 ao lado de cada tópico ligado a uma competência; o painel do tópico e a rota também
+- **Início:** gráfico de competências por nível, requisitos técnicos no objetivo de carreira e lembrete para se reavaliar a cada 30 dias
+- O backup inclui a autoavaliação
+- Novo nome da plataforma: **Jornada · Além do básico**. A Jornada QA continua sendo a jornada pronta; o endereço do site não mudou
+- **IA no dia a dia** virou o caderno pronto **IA para QA** no Caderno de estudos (uma página por assunto, exercícios em checklist, tudo editável). Entra sozinho uma vez; quem excluir recria em **Novo caderno › Guia pronto**. O endereço antigo `#ia` abre o caderno
+- Menu em três grupos: **Aprender** (Trilha, Caderno de estudos), **Evoluir** (Autoavaliação, Carreira) e **Recursos** (Prompts, Biblioteca, Projetos)
+- **Trilha:** Mapa, Rota e Minimapas viram abas de uma página só; o menu lembra a última aba usada
+- Cores novas: cinzas neutros no fundo e violeta como cor principal, para não confundir com os níveis N1, N2 e N3
+- Versão visível na barra lateral, com a lista de novidades (`data/versoes.js`)
+- Lembrete de backup no Início quando nunca houve backup ou o último tem mais de 30 dias
+- Início à prova de erro: cada bloco é montado à parte; se um falhar, mostra um aviso com os detalhes para copiar e o resto aparece. As outras abas também avisam em vez de travar
+- Ajustes no celular: abas da Trilha logo abaixo do título
 
 **v0.5**
 
@@ -118,7 +143,7 @@ Abra o arquivo `index.html` no navegador. Pronto.
 3. Em **Source**, escolha **Deploy from a branch**, branch `main`, pasta `/ (root)`, e salve.
 4. Em alguns minutos o site estará em `https://SEU-USUARIO.github.io/jornada-qa/`.
 
-Dá para abrir uma aba direto pelo endereço: `#inicio`, `#mapa`, `#rota`, `#minimapas`, `#minimapas/seguranca`, `#carreira`, `#caderno`, `#ia`, `#prompts`, `#biblioteca` ou `#projetos`.
+Dá para abrir uma aba direto pelo endereço: `#inicio`, `#mapa`, `#rota`, `#minimapas`, `#minimapas/seguranca`, `#carreira`, `#autoavaliacao`, `#caderno`, `#ia`, `#prompts`, `#biblioteca` ou `#projetos`.
 
 ## Estrutura
 
@@ -134,7 +159,8 @@ jornada-qa/
 │   │   ├── prompts/        biblioteca de prompts, um arquivo por grupo de categorias
 │   │   ├── biblioteca.js   links da biblioteca e projetos
 │   │   ├── minimapas/      um arquivo por área (seguranca.js, …)
-│   │   └── carreira.js     níveis da carreira em Y de QA
+│   │   ├── carreira.js     níveis da carreira em Y de QA
+│   │   └── competencias.js matriz de competências (autoavaliação) e o que cada nível da carreira exige
 │   └── personalizado.js    conteúdo da Jornada QA editado pela página (substitui o padrão quando preenchido)
 └── js/                     CÓDIGO: como o conteúdo aparece e se comporta
     ├── core/               base usada por todas as páginas
@@ -146,6 +172,7 @@ jornada-qa/
     ├── pages/              um arquivo por aba ou recurso
     │   ├── inicio.js       aba Início e troca de jornadas
     │   ├── caderno.js      caderno de estudos e regra de conclusão
+    │   ├── autoavaliacao.js matriz de competências e níveis 1 a 3
     │   ├── mapa.js         mapa mental, busca, pan e zoom
     │   ├── rota.js         rota de estudo
     │   ├── topico.js       detalhes do tópico e editor

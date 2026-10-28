@@ -26,7 +26,7 @@ function renderRoute(){
         <button class="open" data-open="${esc(t.id)}" aria-label="${esc(t.t)}${on ? ", dominado" : ""}. Abrir detalhes">
           <span class="t"><span>${esc(t.t)}</span></span>
           ${t.ia || note ? `<span class="chips-inline">${t.ia ? '<span class="pill-ia">IA</span>' : ''}${note ? '<span class="pill-note">anotação</span>' : ''}</span>` : ""}
-          <span class="meta">${esc(t.pr)} · ${esc(t.p)}</span>
+          <span class="meta">${esc(t.pr)} · ${esc(t.p)}${(() => { const tl = A.topicLevel?.(t.id); return tl && tl.l.n ? ` · <span class="avb lv${tl.l.n}" title="Seu nível em ${esc(tl.it.t)}">N${tl.l.n}</span>` : ""; })()}</span>
           ${t.tech.length ? `<span class="k">${esc(t.tech.join(", "))}</span>` : ""}
           ${note ? `<span class="notepreview">${esc(note.slice(0, 110))}${note.length > 110 ? "…" : ""}</span>` : ""}
         </button>

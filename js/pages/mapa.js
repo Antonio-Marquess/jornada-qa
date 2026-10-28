@@ -109,7 +109,8 @@ function topicNode(t, s, k){
       edit:v => mutate(() => { t.l[i][0] = v; }),
       sib:() => mutate(() => { t.l.splice(i + 1, 0, ["Novo material", ""]); return t.id + "/l" + (i + 1); }),
       del:() => mutate(() => { t.l.splice(i, 1); })}))});
-  return {id:t.id, label:t.t, color:s.color, done:isDone, ia:!!t.ia, note:!!A.notes[t.id], match:!!k && m, dim:!m,
+  const lv = A.topicLevel?.(t.id)?.l.n || 0;
+  return {id:t.id, label:t.t, color:s.color, tag:lv ? "N" + lv : "", tagFill:lv ? `var(--lv${lv})` : null, done:isDone, ia:!!t.ia, note:!!A.notes[t.id], match:!!k && m, dim:!m,
     aria:`${t.t}, ${s.name}${t.ia ? ", tópico de IA" : ""}${A.notes[t.id] ? ", com anotação" : ""}${isDone ? ", dominado" : ""}`,
     openLabel:"Detalhes", onOpen:() => openPanel(t),
     edit:v => mutate(() => { t.t = v; }),
@@ -151,7 +152,13 @@ function focusTopic(id){
   /* tópico fora da trilha aberta: abre a principal, onde todo tópico da principal aparece */
   const t = findTopic(id);
   if(t && !A.trailTopics().includes(t) && A.isOfficialTopic(t)){ A.setTrail(A.OFICIAL); A.refreshTrail(); }
-  location.hash = "mapa"; requestAnimationFrame(() => mm.focus(id));
+  /* mostra o tópico no mapa inteiro (sem o modo foco, que esconde o resto): abre o ramo, seleciona e aproxima */
+  location.hash = "mapa";
+  requestAnimationFrame(() => {
+    mm.unfocus(); const st = t && A.stageIn(t);
+    mm.setReveal([...revealFor(), ...(st ? ["st:" + st.id] : []), id]);
+    mm.select(id); mm.fitTo(n => n.id === id || n.id.startsWith(id + "/"));
+  });
 }
 
 const qi = $("#q");

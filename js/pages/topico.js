@@ -26,6 +26,7 @@ function openPanel(t){
       ${v.ok ? "" : `<p>${esc(A.whyNot(v))}</p>`}</div>` : ""}
     ${t.d ? `<p style="margin:0">${esc(t.d)}</p>` : ""}
     <dl class="facts"><div><dt>Profundidade</dt><dd>${esc(t.p)}</dd></div><div><dt>Prioridade</dt><dd>${esc(t.pr)}</dd></div></dl>
+    ${(() => { const tl = A.topicLevel?.(t.id); return tl ? `<a class="tlevel lv${tl.l.n}" href="#autoavaliacao/${esc(tl.a.id)}/${esc(tl.it.id)}"><span>Seu nível em <b>${esc(tl.it.t)}</b></span><span class="avb lv${tl.l.n}">${tl.l.n ? "N" + tl.l.n + " · " : ""}${esc(A.NIVEIS_COMP[tl.l.n][0])}</span></a>` : ""; })()}
     ${t.tech.length ? `<section><h4>Tecnologias e conceitos</h4><div class="chips" id="pTech">${t.tech.map(k => `<button data-k="${esc(k)}" title="Ver onde mais aparece na trilha">${esc(k)}</button>`).join("")}</div></section>` : ""}
     ${t.est.length ? `<section><h4>O que estudar <span class="count">${tickCount(t, "e", t.est)}</span></h4>${tickList(t, "e", t.est)}</section>` : ""}
     ${t.l.length ? `<section><h4>Materiais</h4><ul class="links mats">${t.l.map(([lab, url, nota]) => `<li>${ext(lab, url)}${nota ? `<small>${esc(nota)}</small>` : ""}</li>`).join("")}</ul></section>` : ""}

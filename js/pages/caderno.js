@@ -87,7 +87,7 @@ function openCaderno(parts){
 const go = (c, p) => { location.hash = "caderno" + (c ? "/" + c.id + (p ? "/" + p.id : "") : ""); };
 
 /* ---------- início do caderno: lista, busca e regra ---------- */
-const TIPOS = {mini:["grid", "Minimapa"], etapa:["route", "Etapa da trilha"], topico:["book", "Tópico"], trilha:["route", "Tópicos da trilha"], livre:["pen", "Livre"]};
+const TIPOS = {guia:["spark", "Guia pronto"], mini:["grid", "Minimapa"], etapa:["route", "Etapa da trilha"], topico:["book", "Tópico"], trilha:["route", "Tópicos da trilha"], livre:["pen", "Livre"]};
 function progOf(c){
   const linked = c.paginas.filter(p => p.ref);
   const isDone = p => p.ref.k === "topic" ? done.has(p.ref.id) : A.mini.doneMini.has(p.ref.id);
@@ -143,6 +143,7 @@ function openNew(){
       <label class="checkline"><input type="radio" name="tipo" value="etapa"${minis.length ? "" : " checked"}> Uma etapa da trilha</label>
       <label class="checkline"><input type="radio" name="tipo" value="topico"> Um tópico da trilha</label>
       <label class="checkline"><input type="radio" name="tipo" value="livre"> Assunto livre (curso, livro, ferramenta)</label>
+      ${A.area().conteudo && A.J.IA ? `<label class="checkline"><input type="radio" name="tipo" value="guia"> Guia pronto: IA para ${esc(A.area().nome)}</label>` : ""}
     </fieldset>
     <label data-for="mini"${minis.length ? "" : " hidden"}>Minimapa<select class="in" name="mini">${minis.map(m => `<option value="${esc(m.id)}">${esc(m.t)}</option>`).join("")}</select></label>
     <label data-for="etapa" hidden>Etapa<select class="in" name="etapa">${tr.stages.map(s => `<option value="${esc(s.id)}">${esc(stageLabel(s))}</option>`).join("")}</select></label>
@@ -163,6 +164,7 @@ function openNew(){
     }
     else if(tipo === "etapa"){ const s = tr.stages.find(x => x.id === f.etapa.value); c = {tipo, assunto:stageLabel(s), t:s.name, paginas:A.topicsOf(s).map(t => newPage(t.t, s.name, {k:"topic", id:t.id}))}; }
     else if(tipo === "topico"){ const t = A.findTopic(f.topico.value), s = A.stageIn(t); c = {tipo, assunto:stageLabel(s), t:t.t, paginas:[newPage(t.t, s?.name, {k:"topic", id:t.id})]}; }
+    else if(tipo === "guia") c = fromGuia();
     else c = {tipo:"livre", assunto:"", t:"Novo caderno", paginas:[newPage("Primeira página", "")]};
     if(f.t.value.trim()) c.t = f.t.value.trim();
     if(!c.paginas.length) c.paginas.push(newPage("Primeira página", ""));
@@ -179,6 +181,43 @@ function fromMini(m){
     }); });
   return {tipo:"mini", ref:m.id, assunto:m.t, t:m.t, paginas:pages};
 }
+
+/* ---------- guia pronto: IA para QA ----------
+ * O conteúdo de IA da jornada (data/qa/ia.js) vira um caderno já preenchido: dá para editar, anotar,
+ * marcar os exercícios e acrescentar páginas. Entra uma vez em cada navegador; quem excluir recria em Novo caderno. */
+const B = (k, o) => ({id:uid("b"), k, ...o});
+const txt = html => B("texto", {html});
+const ul = (xs, tag = "ul") => `<${tag}>${xs.map(x => `<li>${x}</li>`).join("")}</${tag}>`;
+function fromGuia(){
+  const IA = A.J.IA; if(!IA) return null;
+  const m = IA.mcp, a = IA.agentes, ex = A.doneEx || new Set();
+  const pg = (t, sec, blocos) => ({...newPage(t, sec), blocos});
+  const paginas = [
+    pg("Comece aqui", "Guia", [txt(`<p>${esc(IA.intro)}</p>`),
+      B("nota", {tipo:"dica", txt:"Os prompts prontos para cada tarefa estão na aba Prompts, em Recursos. Este caderno é seu: edite, acrescente o que aprender e anote o que funcionou no seu dia a dia."})]),
+    pg("Onde a IA ajuda e onde ter cuidado", "Guia", IA.tarefas.flatMap(t => [
+      txt(`<h4>${esc(t.t)}</h4><p>${esc(t.como)}</p>`), B("nota", {tipo:"importante", txt:t.cuidado})])),
+    pg("MCP: dando contexto real ao assistente", "MCP", [txt(`<p>${esc(m.oque)}</p>${ul(m.partes.map(x => `<b>${esc(x.t)}:</b> ${esc(x.d)}`), "ol")}`)]),
+    pg("Servidores MCP úteis para QA", "MCP", m.servidores.flatMap(x => [
+      B("link", {t:x.t, url:x.url}), txt(`<p>${esc(x.faz)}</p><p><b>Peça assim:</b> <i>${esc(x.pedido)}</i></p>`), B("nota", {tipo:"importante", txt:x.cuidado})])),
+    pg("Como configurar um servidor MCP", "MCP", [B("code", {txt:m.config}), txt(`<p>${esc(m.configNota)}</p>`),
+      ...m.links.map(([t, url]) => B("link", {t, url}))]),
+    pg("Agentes de teste do Playwright", "Agentes", [txt(`<p>${esc(a.oque)}</p>${ul(a.passos.map(x => `<b>${esc(x.t)}:</b> ${esc(x.d)}`), "ol")}`),
+      B("code", {txt:a.cmd}), txt(`<p>${esc(a.cmdNota)}</p>`), B("link", {t:a.link[0], url:a.link[1]})]),
+    pg("Uma história do começo ao fim, com IA", "Na prática", [txt(ul(IA.fluxo.map(x => `<b>${esc(x.t)}:</b> ${esc(x.d)}`), "ol"))]),
+    pg("Regras de ouro", "Na prática", [txt(ul(IA.regras.map(esc)))]),
+    pg("Exercícios", "Na prática", [B("check", {items:IA.exercicios.map((t, i) => ({t, on:ex.has(i)}))})])
+  ];
+  return {tipo:"guia", ref:"ia", assunto:"IA", t:`IA para ${A.area().nome}`, paginas};
+}
+function seedGuia(){
+  if(!A.area().conteudo || !A.J.IA || store.get("jqa-guia-ia", false)) return;
+  const c = fromGuia(); if(!c) return;
+  cads().push({id:uid("cd"), at:Date.now(), ...c}); save(); store.set("jqa-guia-ia", true);
+}
+/* o endereço antigo (#ia) abre o guia */
+function openGuia(){ seedGuia(); const c = cads().find(x => x.tipo === "guia"); return c ? c.id : ""; }
+seedGuia();
 /* "Anotar no caderno" a partir de um tópico ou item: abre a página que já existe ou cria uma */
 function noteFor(k, id){
   const found = pagesFor(k, id)[0];
@@ -276,7 +315,7 @@ function blockHTML(b){
         <button data-cmd="h3" title="Título">T</button><button data-cmd="insertUnorderedList" title="Lista">•</button><button data-cmd="insertOrderedList" title="Lista numerada">1.</button>
         <button data-cmd="quote" title="Citação">“</button><button data-cmd="code" title="Código no texto">&lt;/&gt;</button><button data-cmd="link" title="Link">${ico("link")}</button></div>
       <div class="nbrich" contenteditable="true" data-f="html" data-ph="Escreva o que entendeu, com suas palavras…">${clean(b.html)}</div></div>`;
-    case "check": return `${head}<ul class="nbcheck">${b.items.map((it, i) => `<li><input type="checkbox" data-ci="${i}"${it.on ? " checked" : ""} aria-label="Feito"><input class="nbci2" data-ct="${i}" value="${esc(it.t)}" placeholder="Item"><button class="nbx" data-cdel="${i}" aria-label="Remover item">${ico("x")}</button></li>`).join("")}</ul>
+    case "check": return `${head}<ul class="nbcheck">${b.items.map((it, i) => `<li><input type="checkbox" data-ci="${i}"${it.on ? " checked" : ""} aria-label="Feito"><textarea class="nbci2" data-ct="${i}" rows="1" placeholder="Item">${esc(it.t)}</textarea><button class="nbx" data-cdel="${i}" aria-label="Remover item">${ico("x")}</button></li>`).join("")}</ul>
       <button class="btn sm ghost" data-cadd>${ico("plus")}Item</button></div>`;
     case "link": { const u = safeUrl(b.url);
       return `${head}<div class="nblink">${ico("link")}<div><input data-f="t" value="${esc(b.t)}" placeholder="Título do link" aria-label="Título do link"><input data-f="url" value="${esc(b.url)}" placeholder="https://…" aria-label="Endereço"></div>
@@ -289,6 +328,11 @@ function blockHTML(b){
   }
   return "";
 }
+
+/* itens de checklist com texto longo quebram linha em vez de cortar */
+const growAll = () => root.querySelectorAll("textarea.nbci2").forEach(grow);
+new MutationObserver(() => requestAnimationFrame(growAll)).observe(root, {childList:true, subtree:true});
+window.addEventListener("resize", () => { if(A.curTab === "caderno") growAll(); });
 
 /* texto formatado: só as marcações simples passam; o resto vira texto */
 const OK_TAGS = new Set(["B","STRONG","I","EM","U","S","P","BR","DIV","UL","OL","LI","H3","H4","CODE","PRE","BLOCKQUOTE","A","SPAN"]);
@@ -350,7 +394,7 @@ root.addEventListener("input", e => {
   const b = blockOf(el); if(!b) return;
   if(el.dataset.f === "html") b.html = clean(el.innerHTML);
   else if(el.dataset.f){ b[el.dataset.f] = el.value; if(b.k === "nota" && el.dataset.f === "tipo") el.closest(".nbcall").dataset.tipo = el.value; if(b.k === "code") el.nextElementSibling.dataset.copy = el.value; }
-  else if(el.dataset.ct != null) b.items[+el.dataset.ct].t = el.value;
+  else if(el.dataset.ct != null){ b.items[+el.dataset.ct].t = el.value.replace(/\n/g, " "); grow(el); }
   if(el.tagName === "TEXTAREA") grow(el);
   changed(); refreshGate();
 });
@@ -505,5 +549,5 @@ function uncompleteTopic(t){ done.delete(t.id); store.set("jqa-trilha", [...done
 /* importação de backup e troca de conteúdo */
 function reloadNB(){ NB = store.get("jqa-cadernos", {cadernos:[]}); NB.cadernos = NB.cadernos || []; }
 
-Object.assign(A, {openCaderno, noteFor, canCompleteTopic, canCompleteMini, whyNot, completeTopic, uncompleteTopic, reloadNB, hasNoteTopic});
+Object.assign(A, {openGuia, openCaderno, noteFor, canCompleteTopic, canCompleteMini, whyNot, completeTopic, uncompleteTopic, reloadNB, hasNoteTopic});
 })(JQA.app);

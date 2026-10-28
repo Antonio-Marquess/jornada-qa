@@ -164,7 +164,10 @@ function createMindMap(opt){
       }
       el("text", {x, y:d === 2 ? 5 : 4.5, fill:on ? "var(--hl-ink)" : "var(--text)", style:`font:${n.font}`}, g).textContent = n.text;
       if(n.ia) useIcon(g, "spark", n.hw - n.tagW - 22, -8, 16, "var(--ia)", 2);
-      if(n.tag) el("text", {x:n.hw - n.tagW, y:d === 2 ? 4.5 : 4, fill:on ? "var(--hl-ink)" : "var(--muted)", style:`font:${TAG_FONT}`}, g).textContent = n.tag;
+      /* tagFill: a etiqueta vira uma pílula colorida (níveis N1, N2, N3) */
+      if(n.tag && n.tagFill){ el("rect", {x:n.hw - n.tagW - 4, y:-9, width:n.tagW, height:18, rx:5, fill:n.tagFill}, g);
+        el("text", {x:n.hw - n.tagW + 1, y:4, fill:n.tagInk || "var(--lv-ink)", style:`font:700 11px "Atkinson Hyperlegible", sans-serif`}, g).textContent = n.tag; }
+      else if(n.tag) el("text", {x:n.hw - n.tagW, y:d === 2 ? 4.5 : 4, fill:on ? "var(--hl-ink)" : "var(--muted)", style:`font:${TAG_FONT}`}, g).textContent = n.tag;
     }
     /* interação: clique seleciona, duplo clique edita (ou abre, se não for editável) */
     if(n.id === sel) g.classList.add("sel");

@@ -16,7 +16,7 @@
  *   cc   critérios de conclusão: como saber que terminou
  */
 window.JQA = window.JQA || {};
-JQA.CONTENT_VERSION = "0.5";
+JQA.CONTENT_VERSION = "0.6";
 
 JQA.STAGES = [
   {id:"e1", n:"1", name:"Base", color:"--e1",

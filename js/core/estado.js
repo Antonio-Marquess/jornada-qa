@@ -9,7 +9,7 @@ const COLORS = ["--e1","--e2","--e3","--e4","--e5"];
 const baseCareer = () => clone(J.CARREIRA_BASE || []).map(n => ({eq:[], resumo:"", espera:[], topicos:[], minis:[], extra:[], provar:[], comport:[], trava:[], ...n}));
 function defaults(){
   if(!OF_AREA) return {v:2, stages:[{id:"e1", n:"1", name:"Primeira etapa", goal:"", color:"--e1"}], topics:[], prompts:[], promptsV:4,
-    lib:[], minis:[], mapas:[], trilhas:[], carreiras:[], carreira:baseCareer()};
+    lib:[], minis:[], mapas:[], trilhas:[], carreiras:[], carreira:baseCareer(), comp:[]};
   return {v:2, stages:clone(J.STAGES), topics:clone(J.TOPICS),
     prompts:clone(J.PROMPTS).map(p => ({id:p.id || uid("p"), ...p})), promptsV:4,
     lib:clone(J.LIB).map(i => ({id:uid("l"), ...i})),
@@ -59,9 +59,15 @@ function normalize(c){
   c.trilhas.forEach(tr => { tr.id = tr.id || uid("tr"); tr.stages = tr.stages || [];
     tr.stages.forEach((s, i) => { s.id = s.id || uid("u"); s.ids = s.ids || []; s.color = s.color || COLORS[i % COLORS.length]; s.n = s.n || String(i + 1); s.goal = s.goal || ""; }); });
   if(!c.carreira?.length) c.carreira = OF_AREA ? clone(J.CARREIRA || []) : baseCareer();
+  /* matriz de competências (aba Autoavaliação): áreas › competências › frases dos níveis 1 a 3 */
+  if(!c.comp) c.comp = OF_AREA ? clone(J.COMPETENCIAS || []) : [];
+  c.comp.forEach(ar => { ar.id = ar.id || uid("ar"); ar.itens = ar.itens || [];
+    ar.itens.forEach(it => { it.id = it.id || uid("cp"); it.topicos = it.topicos || []; ["n1","n2","n3"].forEach(k => { it[k] = it[k] || []; }); }); });
+  /* competências exigidas pela carreira principal, vindas do arquivo, quando o nível ainda não tem */
+  if(OF_AREA && J.CARREIRA_COMP) (c.carreira || []).forEach(n => { if(!n.comp && J.CARREIRA_COMP[n.id]) n.comp = clone(J.CARREIRA_COMP[n.id]); });
   c.carreiras = c.carreiras || [];
   [c.carreira, ...c.carreiras.map(k => k.niveis = k.niveis || [])].forEach(list => list.forEach(n => {
-    ["espera","provar","comport","trava","topicos","minis","extra","eq"].forEach(k => { n[k] = n[k] || []; }); n.escopo = n.escopo || ""; n.resumo = n.resumo || ""; }));
+    ["espera","provar","comport","trava","topicos","minis","extra","eq","comp"].forEach(k => { n[k] = n[k] || []; }); n.escopo = n.escopo || ""; n.resumo = n.resumo || ""; }));
   return c;
 }
 /* Conteúdo salvo numa versão anterior: completa os tópicos com os campos novos

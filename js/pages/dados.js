@@ -13,6 +13,18 @@ function download(name, text, type){
   a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
+/* exporta o backup da jornada aberta e guarda a data (o Início lembra quando faz mais de 30 dias) */
+async function exportBackup(){
+  let arquivos = {};
+  try{ toast("Preparando o backup…"); arquivos = await A.files.exportAll(); }catch(e){ toast("Os arquivos dos cadernos não puderam ser lidos; o resto vai no backup."); }
+  const data = {app:"jornada-qa", v:2, jornada:A.area().id, exportado:new Date().toISOString(), conteudo:A.C, notas:A.notes,
+    progresso:{trilha:[...done], projetos:[...doneProj], exercicios:[...doneEx], checklists:A.checks, minimapas:store.get("jqa-minimapas", []),
+      carreira:store.get("jqa-carreira", {}), atividade:store.get("jqa-atividade", {}), autoavaliacao:store.get("jqa-autoav", {})},
+    cadernos:store.get("jqa-cadernos", {cadernos:[]}), regra:store.get("jqa-regra", null), arquivos};
+  const slug = A.area().id === "qa" ? "jornada-qa" : "jornada-" + A.area().id;
+  download(`${slug}-backup.json`, JSON.stringify(data), "application/json"); toast("Backup exportado.");
+  store.set("jqa-backup-em", A.today());
+}
 function openData(){
   closeSide();
   showPanel("Backup e publicação", null, "Seus dados");
@@ -26,16 +38,7 @@ function openData(){
       <div class="dataitem"><b>Publicar no GitHub</b><p>Gera o personalizado.js. Substitua o arquivo data/personalizado.js do repositório para todos verem suas edições.</p><button class="btn primary" id="publishBtn">Gerar arquivo</button></div>
       <div class="dataitem"><b>Restaurar original</b><p>Descarta as edições de conteúdo deste navegador. Seus mapas, trilhas e carreiras próprios, anotações e progresso continuam.</p><button class="btn danger" id="resetBtn">Restaurar</button></div>
     </div>`;
-  $("#exportBtn").onclick = async () => {
-    let arquivos = {};
-    try{ toast("Preparando o backup…"); arquivos = await A.files.exportAll(); }catch(e){ toast("Os arquivos dos cadernos não puderam ser lidos; o resto vai no backup."); }
-    const data = {app:"jornada-qa", v:2, jornada:A.area().id, exportado:new Date().toISOString(), conteudo:A.C, notas:A.notes,
-      progresso:{trilha:[...done], projetos:[...doneProj], exercicios:[...doneEx], checklists:A.checks, minimapas:store.get("jqa-minimapas", []),
-        carreira:store.get("jqa-carreira", {}), atividade:store.get("jqa-atividade", {})},
-      cadernos:store.get("jqa-cadernos", {cadernos:[]}), regra:store.get("jqa-regra", null), arquivos};
-    const slug = A.area().id === "qa" ? "jornada-qa" : "jornada-" + A.area().id;
-    download(`${slug}-backup.json`, JSON.stringify(data), "application/json"); toast("Backup exportado.");
-  };
+  $("#exportBtn").onclick = () => exportBackup();
   $("#importBtn").onclick = () => $("#importFile").click();
   $("#publishBtn").onclick = () => {
     const js = `window.JQA = window.JQA || {};\n/* Conteúdo personalizado da Jornada QA, gerado em ${new Date().toLocaleString("pt-BR")}.\n * Substitua o arquivo data/personalizado.js do repositório por este para publicar as alterações. */\nJQA.OVERRIDE = ${JSON.stringify(A.C, null, 1)};\n`;
@@ -66,6 +69,7 @@ $("#importFile").onchange = async e => {
     doneProj.clear(); (pr.projetos || []).forEach(x => doneProj.add(x)); store.set("jqa-projetos", [...doneProj]);
     doneEx.clear(); (pr.exercicios || []).forEach(x => doneEx.add(x)); store.set("jqa-exercicios-ia", [...doneEx]);
     if(pr.minimapas) store.set("jqa-minimapas", pr.minimapas);
+    if(pr.autoavaliacao) store.set("jqa-autoav", pr.autoavaliacao);
     if(data.cadernos) store.set("jqa-cadernos", data.cadernos);
     if(data.regra) store.set("jqa-regra", data.regra);
     if(data.arquivos && Object.keys(data.arquivos).length){ try{ await A.files.importAll(data.arquivos); }catch(e){ toast("Alguns arquivos dos cadernos não puderam ser restaurados."); } }
@@ -76,5 +80,5 @@ $("#importFile").onchange = async e => {
 };
 function rerenderAll(){ closePanel(); refreshTrail(); if(A.curTab === "carreira") A.renderCarreira(); A.rendered.ia = A.rendered.prompts = A.rendered.lib = A.rendered.proj = 0; $("#promptsPage").dataset.ready = ""; $("#libPage").dataset.ready = ""; show(location.hash.slice(1)); }
 
-Object.assign(A, {openData, rerenderAll});
+Object.assign(A, {exportBackup, openData, rerenderAll});
 })(JQA.app);

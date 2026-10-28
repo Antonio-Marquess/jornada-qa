@@ -29,7 +29,7 @@ if(!ALL_AREAS().some(a => a.id === AREA)) AREA = (J.AREAS || [{id:"qa"}])[0].id;
 const OFFICIAL_AREA = (J.AREAS || [{id:"qa"}])[0].id;
 const keyOf = k => (AREA === OFFICIAL_AREA || GLOBAL_KEYS.has(k)) ? k : k + "@" + AREA;
 /* atividade: cada vez que a pessoa marca, desmarca ou anota algo, conta um ponto no dia (base dos gráficos da home) */
-const TRACK = new Set(["jqa-trilha", "jqa-checklists", "jqa-notas", "jqa-carreira", "jqa-projetos", "jqa-exercicios-ia", "jqa-minimapas", "jqa-cadernos"]);
+const TRACK = new Set(["jqa-trilha", "jqa-checklists", "jqa-notas", "jqa-carreira", "jqa-projetos", "jqa-exercicios-ia", "jqa-minimapas", "jqa-cadernos", "jqa-autoav"]);
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
 function bump(){
   const k = keyOf("jqa-atividade"), log = raw.get(k, {}), t = today();

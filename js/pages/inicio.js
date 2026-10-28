@@ -6,7 +6,7 @@ const {$, esc, ico, uid, store, raw, toast, done, showPanel, closePanel, pBody, 
 let forceIntro = false;   /* "ver a apresentação" mesmo com progresso */
 
 /* ---------- dados calculados ---------- */
-const hasProgress = () => done.size > 0 || Object.keys(A.notes).length > 0 || Object.keys(A.checks).length > 0 || !!A.careerSummary().cur;
+const hasProgress = () => (A.compCounts?.() || [1, 0, 0, 0]).slice(1).some(Boolean) || done.size > 0 || Object.keys(A.notes).length > 0 || Object.keys(A.checks).length > 0 || !!A.careerSummary().cur;
 function nextTopic(){
   const all = trailTopics();
   return all.find(t => !done.has(t.id) && t.pr === "Essencial") || all.find(t => !done.has(t.id)) || null;
@@ -81,31 +81,61 @@ function careerChart(cs){
   const on = new Set(A.carreiraState.marc[cs.alvo.id] || []), g = [["espera","e","O que se espera"],["provar","p","Provas"],["comport","c","Comportamentos"]];
   const rows = g.map(([k, px, l]) => { const n = cs.alvo[k].filter((_, i) => on.has(px + i)).length, t = cs.alvo[k].length;
     return t ? {l, p:Math.round(n / t * 100), v:`${n}/${t}`, c:"--e3", tip:`${l}: ${n} de ${t}`} : null; }).filter(Boolean);
+  if(cs.comp?.length){ const ok = cs.comp.filter(r => r.ok).length; rows.push({l:"Competências técnicas", p:Math.round(ok / cs.comp.length * 100), v:`${ok}/${cs.comp.length}`, c:"--e3", tip:`Competências no nível exigido: ${ok} de ${cs.comp.length}`}); }
   if(cs.gap.tt) rows.push({l:"Tópicos", p:Math.round(cs.gap.td / cs.gap.tt * 100), v:`${cs.gap.td}/${cs.gap.tt}`, c:"--e3", tip:`Tópicos do nível: ${cs.gap.td} de ${cs.gap.tt} dominados`});
   return hbars(rows, `Requisitos de ${cs.alvo.nome}`);
 }
+function compChart(){
+  const c = A.compCounts?.() || [0, 0, 0, 0], tot = c.reduce((x, y) => x + y, 0); if(!tot) return "";
+  const nomes = ["Ainda não", "N1 · Conheço", "N2 · Pratico", "N3 · Domino"];
+  return `<section class="hcard"><span class="hlabel">Suas competências</span><span class="hsubl">${tot} tecnologias e assuntos da autoavaliação</span>
+    ${hbars([3, 2, 1, 0].map(n => ({l:nomes[n], p:Math.round(c[n] / tot * 100), v:String(c[n]), c:["--lv0","--lv1","--lv2","--lv3"][n], tip:`${nomes[n]}: ${c[n]} de ${tot}`})), "Competências por nível")}
+    <a class="btn sm" href="#autoavaliacao${c[0] === tot ? "" : "/resultado"}">${c[0] === tot ? "Fazer minha autoavaliação" : "Ver meu resultado"}</a></section>`;
+}
 function charts(S, cs){
-  return `<div class="hcharts">
-    <section class="hcard"><span class="hlabel">Tópicos dominados por etapa</span>${stageChart(S)}</section>
-    <section class="hcard"><span class="hlabel">Sua constância</span><span class="hsubl">dias com estudo por semana, nas últimas 8</span>${activityChart(S)}</section>
-    <section class="hcard"><span class="hlabel">Essencial primeiro?</span><span class="hsubl">tópicos dominados por prioridade</span>${prioChart(S)}</section>
-    ${cs.alvo ? `<section class="hcard"><span class="hlabel">Rumo a ${esc(cs.alvo.nome)}</span><span class="hsubl">requisitos da carreira que você já marcou</span>${careerChart(cs)}
+  return `<div class="hcharts">${blk("Suas competências", compChart)}
+    ${blk("Tópicos dominados por etapa", () => `<section class="hcard"><span class="hlabel">Tópicos dominados por etapa</span>${stageChart(S)}</section>`)}
+    ${blk("Sua constância", () => `<section class="hcard"><span class="hlabel">Sua constância</span><span class="hsubl">dias com estudo por semana, nas últimas 8</span>${activityChart(S)}</section>`)}
+    ${blk("Essencial primeiro?", () => `<section class="hcard"><span class="hlabel">Essencial primeiro?</span><span class="hsubl">tópicos dominados por prioridade</span>${prioChart(S)}</section>`)}
+    ${blk("Carreira", () => cs.alvo ? `<section class="hcard"><span class="hlabel">Rumo a ${esc(cs.alvo.nome)}</span><span class="hsubl">requisitos da carreira que você já marcou</span>${careerChart(cs)}
       <button class="btn sm" data-hlevel="${esc(cs.alvo.id)}">Ver requisitos</button></section>`
-    : `<section class="hcard"><span class="hlabel">Carreira</span><p class="muted">Marque onde você está e um objetivo para ver aqui o quanto falta.</p><a class="btn sm" href="#carreira">Marcar meu nível</a></section>`}
+    : `<section class="hcard"><span class="hlabel">Carreira</span><p class="muted">Marque onde você está e um objetivo para ver aqui o quanto falta.</p><a class="btn sm" href="#carreira">Marcar meu nível</a></section>`)}
   </div>`;
 }
 
 /* ---------- blocos ---------- */
+/* monta um bloco; se der erro, mostra um aviso no lugar dele com os detalhes para copiar */
+function blk(nome, fn, inline){
+  try{ return fn(); }catch(e){
+    console.error(`Início · ${nome || "bloco"}:`, e);
+    if(inline) return "—";
+    const det = String(e && (e.stack || e.message) || e).split("\n").slice(0, 4).join("\n");
+    return `<section class="hcard herr"><span class="hlabel">${esc(nome)}</span>
+      <p>Esta parte não carregou por causa de um erro. O resto do Início continua funcionando.</p>
+      <details><summary>Detalhes do erro</summary><pre>${esc(det)}</pre></details>
+      <button class="btn sm" data-hcopy="${esc(`${nome}: ${det}`)}">Copiar detalhes</button></section>`;
+  }
+}
+/* lembrete de backup: os dados ficam só neste navegador; avisa se nunca houve backup ou se faz 30 dias */
+function backupNote(){
+  const em = store.get("jqa-backup-em", null), adiado = store.get("jqa-backup-adiado", null), hoje = Date.now();
+  const dias = d => Math.floor((hoje - new Date(d + "T12:00:00")) / 864e5);
+  if(adiado && dias(adiado) < 7) return "";
+  if(em && dias(em) < 30) return "";
+  const msg = em ? `Seu último backup foi há ${dias(em)} dias.` : "Você ainda não fez nenhum backup.";
+  return `<p class="hnote hbackup">${ico("db")}<span>${msg} Seu progresso, anotações e cadernos ficam só neste navegador: se limpar os dados dele ou trocar de computador, perde tudo.</span>
+    <span class="hbtns"><button class="btn sm primary" id="hBackup">Baixar backup</button><button class="btn sm ghost" id="hBackupLater">Agora não</button></span></p>`;
+}
 function intro(){
   const a = area(), tops = A.C.topics.filter(t => A.C.stages.some(s => s.id === t.s)).length, st = A.C.stages.length;
   const prompts = (A.C.prompts || []).length, vazia = !tops;
   const lead = vazia
     ? `Uma jornada nova, em branco: monte a trilha de ${esc(a.nome)} com etapas e tópicos, ajuste a carreira em Y e junte seus materiais. Tudo fica salvo neste navegador.`
     : `Uma trilha de ${tops} tópicos em ${st} etapas, uma carreira em Y com o que estudar em cada nível${prompts ? ` e ${prompts} prompts prontos` : ""}. Grátis, no seu navegador, sem cadastro.`;
-  const S = stats();
+  let S = null; try{ S = stats(); }catch(e){ console.error(e); }
   return `
     <section class="hhero">
-      <span class="hkicker">${esc(a.titulo)}${a.sub ? " · " + esc(a.sub) : ""}</span>
+      <span class="hkicker">${esc(A.J.NOME || "Jornada")}</span>
       <h2>${esc(a.frase || `Sua jornada em ${a.nome}: trilha, carreira e mapas, do seu jeito.`)}</h2>
       <p>${lead}</p>
     </section>
@@ -117,15 +147,18 @@ function intro(){
       </div></section>
     <section class="hsec"><h3>Seu desempenho</h3>
       <p class="muted hsub">Os números e gráficos crescem conforme você marca tópicos, itens de estudo e requisitos da carreira.</p>
-      ${tiles(S)}${charts(S, A.careerSummary())}</section>`;
+      ${blk("Seus números", () => tiles(S))}${blk("Gráficos", () => charts(S, A.careerSummary()))}</section>`;
 }
 
-function dashboard(){
-  const S = stats(), tr = S.tr, all = S.all, t = nextTopic(), cs = A.careerSummary();
-  const on = t ? new Set(A.checks[t.id] || []) : null, s = t ? A.stageIn(t) : null;
-  const p = promptFor(t);
-  const notas = all.filter(x => A.notes[x.id]).slice(0, 4);
-  const cont = t ? `
+/* lembrete: reavaliar as competências a cada 30 dias */
+function reavaliar(){
+  const d = A.lastEval?.(); if(!d) return "";
+  const dias = Math.floor((Date.now() - new Date(d + "T12:00:00")) / 864e5);
+  return dias >= 30 ? `<p class="hnote hremind">${ico("gauge")}<span>Faz ${dias} dias da sua última autoavaliação. O que você aprendeu desde então já subiu algum nível?</span><a class="btn sm" href="#autoavaliacao">Reavaliar</a></p>` : "";
+}
+function contBlock(all){
+  const t = nextTopic(), on = t ? new Set(A.checks[t.id] || []) : null, s = t ? A.stageIn(t) : null;
+  return t ? `
     <section class="hcard hcont" style="--c:var(${s?.color || "--e1"})">
       <span class="hlabel">Continuar de onde parou</span>
       <div><span class="hstage">${esc(stageLabel(s))} · ${esc(t.pr)}</span>
@@ -138,7 +171,10 @@ function dashboard(){
       <h3>${all.length ? "Você dominou todos os tópicos desta trilha." : "Esta trilha ainda não tem tópicos."}</h3>
       <p class="muted">${all.length ? "Escolha um objetivo maior na Carreira ou monte uma trilha nova." : "Crie etapas e tópicos no Mapa: Tab cria filho, Enter cria irmão."}</p>
       <div class="hbtns"><a class="btn primary" href="#${all.length ? "carreira" : "mapa"}">${all.length ? "Ver a carreira" : "Montar no mapa"}</a></div></section>`;
-  const cam = cs.cur ? `
+}
+function camBlock(){
+  const cs = A.careerSummary();
+  return cs.cur ? `
     <section class="hcard hcam"><span class="hlabel">Seu caminho</span>
       <h3>${esc(cs.cur.nome)}${cs.alvo ? ` <span class="muted">→</span> ${esc(cs.alvo.nome)}` : ""}</h3>
       ${cs.alvo ? `<div class="hbig"><b>${cs.pct}%</b><span class="muted">do objetivo</span></div>
@@ -149,6 +185,9 @@ function dashboard(){
     <section class="hcard hcam"><span class="hlabel">Seu caminho</span>
       <h3>Onde você está na carreira?</h3><p class="muted">Marque seu nível e um objetivo para ver o que falta.</p>
       <a class="btn sm" href="#carreira">Marcar meu nível</a></section>`;
+}
+function extrasBlock(all){
+  const t = nextTopic(), p = promptFor(t), notas = all.filter(x => A.notes[x.id]).slice(0, 4);
   const hoje = (p || t?.x) ? `
     <section class="hcard hhoje"><span class="hlabel">Para hoje</span>
       ${p ? `<button class="hmini" data-hprompt="${esc(p.id)}"><span class="hmk" style="color:var(--e4)">Prompt · ${esc(p.n || "")}</span><b>${esc(p.t)}</b><span class="muted">Combina com o tópico que você está estudando.</span></button>` : ""}
@@ -157,20 +196,29 @@ function dashboard(){
   const notes = notas.length ? `
     <section class="hcard hnotas"><span class="hlabel">Suas anotações</span>
       <div class="hnotegrid">${notas.map(x => `<button class="hmini" data-hopen="${esc(x.id)}"><b>${esc(x.t)}</b><span class="muted">${esc(A.notes[x.id].slice(0, 140))}${A.notes[x.id].length > 140 ? "…" : ""}</span></button>`).join("")}</div></section>` : "";
+  return hoje || notes ? `<div class="hgrid2">${hoje}${notes}</div>` : "";
+}
+/* cada bloco é montado à parte: se um der erro, só ele mostra o aviso e o resto do Início aparece */
+function dashboard(){
+  let S = null; const getS = () => S || (S = stats());
+  const all = () => getS().all;
   return `
     <header class="hhead"><div><h2>Bom te ver de volta</h2>
-      <p class="muted">Trilha aberta: <b>${esc(tr.t)}</b></p></div>
+      <p class="muted">Trilha aberta: <b>${blk("", () => esc(trail().t), true)}</b></p></div>
       <div class="hbtns"><button class="btn" id="hTrail">${ico("route")}Trocar trilha</button><button class="btn ghost" id="hIntro">Ver a apresentação</button></div></header>
-    ${tiles(S)}
-    <div class="hgrid">${cont}${cam}</div>
-    ${charts(S, cs)}
-    ${hoje || notes ? `<div class="hgrid2">${hoje}${notes}</div>` : ""}`;
+    ${blk("Lembrete de backup", backupNote)}
+    ${blk("Lembrete da autoavaliação", reavaliar)}
+    ${blk("Seus números", () => tiles(getS()))}
+    <div class="hgrid">${blk("Continuar de onde parou", () => contBlock(all()))}${blk("Seu caminho", camBlock)}</div>
+    ${blk("Gráficos", () => charts(getS(), A.careerSummary()))}
+    ${blk("Para hoje e anotações", () => extrasBlock(all()))}`;
 }
 
 function renderHome(){
   const root = $("#inicioPage");
-  const intro_ = forceIntro || !hasProgress();
-  root.innerHTML = intro_ ? (hasProgress() ? `<p style="margin:0"><button class="btn" id="hBack">${ico("back")}Voltar ao meu painel</button></p>` : "") + intro() : dashboard();
+  let prog = true; try{ prog = hasProgress(); }catch(e){ console.error(e); }
+  const intro_ = forceIntro || !prog;
+  root.innerHTML = intro_ ? (prog ? `<p style="margin:0"><button class="btn" id="hBack">${ico("back")}Voltar ao meu painel</button></p>` : "") + blk("Apresentação", intro) : dashboard();
 }
 $("#inicioPage").addEventListener("click", e => {
   const b = e.target.closest("button"); if(!b) return;
@@ -180,6 +228,9 @@ $("#inicioPage").addEventListener("click", e => {
   else if(b.dataset.hprompt){ const p = A.C.prompts.find(x => x.id === b.dataset.hprompt); location.hash = "prompts"; setTimeout(() => A.openPrompt(p), 60); }
   else if(b.dataset.harea) openArea(b.dataset.harea);
   else if(b.id === "hTrail") A.openTrails();
+  else if(b.id === "hBackup") A.exportBackup().then(() => renderHome());
+  else if(b.id === "hBackupLater"){ store.set("jqa-backup-adiado", A.today()); renderHome(); }
+  else if(b.dataset.hcopy){ navigator.clipboard?.writeText(b.dataset.hcopy).then(() => toast("Detalhes copiados. Cole na conversa para eu ver."), () => toast("Não deu para copiar; selecione o texto do erro.")); }
   else if(b.id === "hIntro"){ forceIntro = true; renderHome(); $("#v-inicio").scrollTop = 0; }
   else if(b.id === "hBack"){ forceIntro = false; renderHome(); }
 });
@@ -194,8 +245,8 @@ $("#inicioPage").addEventListener("change", e => {
 const tip = document.createElement("div"); tip.className = "htip"; tip.hidden = true; tip.setAttribute("role", "tooltip"); document.body.appendChild(tip);
 function showTip(el){ const r = el.getBoundingClientRect(); tip.textContent = el.dataset.tip; tip.hidden = false;
   const w = tip.offsetWidth; tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + "px"; tip.style.top = (r.top - tip.offsetHeight - 8) + "px"; }
-["mouseover", "focusin"].forEach(ev => $("#inicioPage").addEventListener(ev, e => { const el = e.target.closest("[data-tip]"); if(el) showTip(el); }));
-["mouseout", "focusout"].forEach(ev => $("#inicioPage").addEventListener(ev, e => { if(e.target.closest("[data-tip]")) tip.hidden = true; }));
+["mouseover", "focusin"].forEach(ev => document.querySelector(".stage-area").addEventListener(ev, e => { const el = e.target.closest("[data-tip]"); if(el) showTip(el); }));
+["mouseout", "focusout"].forEach(ev => document.querySelector(".stage-area").addEventListener(ev, e => { if(e.target.closest("[data-tip]")) tip.hidden = true; }));
 $("#v-inicio").addEventListener("scroll", () => { tip.hidden = true; });
 
 /* ---------- jornadas: trocar, criar, renomear, excluir ---------- */
