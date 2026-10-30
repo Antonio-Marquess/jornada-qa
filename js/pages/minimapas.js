@@ -30,7 +30,7 @@ function card(m){
     <span class="mi">${ico(m.icon || "grid")}</span>
     <b>${esc(m.t)}</b>
     ${m.d ? `<p>${esc(m.d)}</p>` : ""}
-    <span class="mstats">${m.ramos.map((r, i) => { const ri = ramoInfo(r, i); return `<span><i style="background:var(${ri.cor})"></i>${r.itens.length} ${esc(ri.t.toLowerCase())}</span>`; }).join("")}</span>
+    <span class="mstats">${m.ramos.map((r, i) => { const ri = ramoInfo(r, i); return `<span><i style="background:var(${ri.cor})"></i>${r.itens.length} ${esc(r.t ? ri.t : ri.t.toLowerCase())}</span>`; }).join("")}</span>
     <span class="mbar"><i style="width:${pct}%"></i></span>
     <small>${c.n} de ${c.tot} itens estudados</small>
   </a>`;
@@ -41,7 +41,7 @@ function renderMiniHome(){
     <p class="lead">Um mapa mental por área, para ir além da trilha, e os seus próprios mapas. Tudo se edita no mapa, como no XMind ou no MindMeister: clique num nó e use a barra que aparece, ou o teclado (Tab cria filho, Enter cria irmão, F2 edita, Delete exclui, Ctrl+Z desfaz).</p>
     ${A.isOfficialArea() || areas.length ? `<h3>Áreas</h3>
     <div class="minicards">${areas.map(card).join("")}
-      ${A.isOfficialArea() ? `<div class="minicard soon"><span class="mi">${ico("plus")}</span><b>Próximas áreas</b><p>Performance, Automação, API, IA para QA, Mobile, Dados e DevOps.</p></div>` : ""}
+      ${A.isOfficialArea() ? `<div class="minicard soon"><span class="mi">${ico("plus")}</span><b>Próximas áreas</b><p>Performance, Automação, API, Mobile, Dados e DevOps.</p></div>` : ""}
     </div>` : ""}
     <h3>Meus mapas</h3>
     <div class="minicards">${meus.map(card).join("")}

@@ -8,10 +8,10 @@ const COLORS = ["--e1","--e2","--e3","--e4","--e5"];
 /* carreira em Y genérica para jornadas novas */
 const baseCareer = () => clone(J.CARREIRA_BASE || []).map(n => ({eq:[], resumo:"", espera:[], topicos:[], minis:[], extra:[], provar:[], comport:[], trava:[], ...n}));
 function defaults(){
-  if(!OF_AREA) return {v:2, stages:[{id:"e1", n:"1", name:"Primeira etapa", goal:"", color:"--e1"}], topics:[], prompts:[], promptsV:4,
+  if(!OF_AREA) return {v:2, stages:[{id:"e1", n:"1", name:"Primeira etapa", goal:"", color:"--e1"}], topics:[], prompts:[], promptsV:5,
     lib:[], minis:[], mapas:[], trilhas:[], carreiras:[], carreira:baseCareer(), comp:[]};
   return {v:2, stages:clone(J.STAGES), topics:clone(J.TOPICS),
-    prompts:clone(J.PROMPTS).map(p => ({id:p.id || uid("p"), ...p})), promptsV:4,
+    prompts:clone(J.PROMPTS).map(p => ({id:p.id || uid("p"), ...p})), promptsV:5,
     lib:clone(J.LIB).map(i => ({id:uid("l"), ...i})),
     minis:clone(J.MINIMAPAS || []), mapas:[], trilhas:[], carreiras:[], carreira:clone(J.CARREIRA || [])};
 }
@@ -46,6 +46,14 @@ function normalize(c){
     const meus = c.prompts.filter(p => !ids.has(p.id) && !base.some(o => o.t === p.t));
     c.prompts = [...meus, ...clone(base)];
     c.promptsV = 4;
+  }
+  /* versão 5: os prompts das versões 0.1 a 0.3 (formato antigo, sem inglês) ficaram na lista como se fossem da pessoa
+   * quando a v0.4 trocou os prompts. Sai só o que continua igual ao original; prompt editado pela pessoa fica. */
+  if(OF_AREA && c.promptsV < 5){
+    const h = s => { let x = 5381; for(let i = 0; i < s.length; i++) x = ((x * 33) ^ s.charCodeAt(i)) >>> 0; return x.toString(36); };
+    const ANTIGOS = new Set(["1aybn9x","10o52v7","r6rnpp","kjaucm","jxpsnc","1iml69q","1u5k09k","1pri5nj","jbcx3e","1fdxy0i","1qpv1y0","bg2a78","irds5h","1p6fz3v","1zv54g","1rvjq6k","me4u1p","12lmja","11uf4lb","6e2nzc","1wm92un"]);
+    c.prompts = c.prompts.filter(p => p.obj || !ANTIGOS.has(h(`${p.t}\n${String(p.p || "").trim()}`)));
+    c.promptsV = 5;
   }
   c.lib.forEach(i => { i.id = i.id || uid("l"); });
   /* minimapas: os que vêm dos arquivos entram sozinhos, menos os que a pessoa excluiu */

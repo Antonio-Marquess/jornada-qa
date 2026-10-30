@@ -269,7 +269,7 @@ a.minicard:hover{border-color:var(--brand);transform:translateY(-2px)}
 .ask small{display:block;font-style:normal;font-weight:700;color:var(--ia);margin-bottom:2px}
 .code{position:relative;background:var(--code-bg);color:var(--code-ink);border-radius:var(--r-card);padding:16px;font:13.5px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow:auto;white-space:pre}
 .code pre{margin:0;white-space:pre-wrap;word-break:break-word;font:inherit}
-.copy{position:absolute;top:10px;right:10px;font:700 .8rem "Atkinson Hyperlegible",sans-serif;background:var(--hl);color:var(--hl-ink);border:0;border-radius:8px;padding:4px 10px;cursor:pointer}
+.copy{position:absolute;top:10px;right:10px;font:700 .8rem "Atkinson Hyperlegible",sans-serif;background:var(--brand);color:var(--brand-ink);border:0;border-radius:8px;padding:4px 10px;cursor:pointer}
 .steps{list-style:none;margin:0;padding:0;display:grid;gap:10px;counter-reset:s}
 .steps li{counter-increment:s;display:grid;grid-template-columns:40px 1fr;gap:12px;align-items:start;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);padding:12px;box-shadow:var(--shadow-sm)}
 .steps li::before{content:counter(s);width:30px;height:30px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;font-family:"Bricolage Grotesque",sans-serif;font-weight:800}
@@ -1166,3 +1166,21 @@ mark.pfill{background:var(--hl);color:var(--hl-ink);border-radius:4px;padding:0 
 .siderow .sidebtn{flex:1}
 .siderow .sidebtn{white-space:nowrap}.siderow .verbtn{flex:none}
 .herr .btn{align-self:flex-start}
+/* ---------- Prompts: barra única, grupos, favoritos ---------- */
+.ptop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px}
+.ptop .psearch{flex:1 1 260px;width:auto;margin:0}
+.ptop .select{height:38px}
+.pgroups{margin-bottom:10px}
+.pcount{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px}
+.pcount .count{margin:0}
+.pfav{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:8px;border:0;background:none;color:var(--muted);font-size:1.15rem;line-height:1;cursor:pointer}
+.pfav:hover{background:var(--surface-2);color:var(--text)}
+.pfav[aria-pressed="true"]{color:var(--note)}
+.pcard-open b{padding-right:36px}
+.pmine{font-weight:700;color:var(--brand);background:var(--brand-soft);border-radius:99px;padding:0 7px}
+.pmore{border:1px solid var(--border);border-radius:var(--r-card);padding:10px 14px;display:grid;gap:12px}
+.pmore[open]{padding-bottom:14px}
+.pmore summary{cursor:pointer;font-weight:700}
+.pmore summary .muted{font-weight:400;font-size:.85rem;margin-left:4px}
+.drawer .pguide{border:0;padding:0;background:none}
+@media (max-width:820px){ .ptop .select{flex:1 1 40%} .ptop #newPrompt{flex:1 1 100%;justify-content:center} }

@@ -19,7 +19,7 @@ async function exportBackup(){
   try{ toast("Preparando o backup…"); arquivos = await A.files.exportAll(); }catch(e){ toast("Os arquivos dos cadernos não puderam ser lidos; o resto vai no backup."); }
   const data = {app:"jornada-qa", v:2, jornada:A.area().id, exportado:new Date().toISOString(), conteudo:A.C, notas:A.notes,
     progresso:{trilha:[...done], projetos:[...doneProj], exercicios:[...doneEx], checklists:A.checks, minimapas:store.get("jqa-minimapas", []),
-      carreira:store.get("jqa-carreira", {}), atividade:store.get("jqa-atividade", {}), autoavaliacao:store.get("jqa-autoav", {})},
+      carreira:store.get("jqa-carreira", {}), atividade:store.get("jqa-atividade", {}), autoavaliacao:store.get("jqa-autoav", {}), promptsFavoritos:store.get("jqa-prompt-fav", [])},
     cadernos:store.get("jqa-cadernos", {cadernos:[]}), regra:store.get("jqa-regra", null), arquivos};
   const slug = A.area().id === "qa" ? "jornada-qa" : "jornada-" + A.area().id;
   download(`${slug}-backup.json`, JSON.stringify(data), "application/json"); toast("Backup exportado.");
@@ -70,6 +70,7 @@ $("#importFile").onchange = async e => {
     doneEx.clear(); (pr.exercicios || []).forEach(x => doneEx.add(x)); store.set("jqa-exercicios-ia", [...doneEx]);
     if(pr.minimapas) store.set("jqa-minimapas", pr.minimapas);
     if(pr.autoavaliacao) store.set("jqa-autoav", pr.autoavaliacao);
+    if(pr.promptsFavoritos) store.set("jqa-prompt-fav", pr.promptsFavoritos);
     if(data.cadernos) store.set("jqa-cadernos", data.cadernos);
     if(data.regra) store.set("jqa-regra", data.regra);
     if(data.arquivos && Object.keys(data.arquivos).length){ try{ await A.files.importAll(data.arquivos); }catch(e){ toast("Alguns arquivos dos cadernos não puderam ser restaurados."); } }

@@ -2,7 +2,7 @@
 
 Trilhas de estudo em mapa mental, caderno de estudos, autoavaliação e carreira em Y. A **Jornada QA** vem pronta, para começar e crescer em qualidade de software com IA desde o primeiro passo; crie as suas jornadas para outras áreas.
 
-**Versão 0.6** · funciona direto no navegador, sem instalar nada.
+**Versão 0.7** · funciona direto no navegador, sem instalar nada.
 
 ## O que tem
 
@@ -35,6 +35,16 @@ O progresso (tópicos dominados, checklists, exercícios e projetos concluídos)
 ## Versões
 
 A versão atual aparece na barra lateral, ao lado de "Alternar tema"; clicar nela mostra as novidades. Ao publicar uma versão nova, atualize `data/versoes.js`.
+
+**v0.7**
+
+- **Conceitos de IA** também no caderno IA para QA: 4 páginas novas. Quem já tem o caderno recebe só as páginas que faltam; o que a pessoa escreveu continua
+- **Minimapa IA para QA** (`data/qa/minimapas/ia-qa.js`), montado a partir de `data/qa/ia.js`: 18 conceitos de IA para QA (modelo, contexto, alucinação, embeddings, RAG, fine-tuning, ferramentas, agentes, MCP, skills, guardrails, avaliações e outros, com o que muda no teste), MCP, agentes de teste, onde a IA ajuda, uma história do começo ao fim, regras de ouro, servidores MCP, exercícios e tópicos da trilha
+- **Caderno Segurança e confiabilidade de IA**, criado sozinho a partir do minimapa. Todo caderno de minimapa passa a vir preenchido: explicação, materiais, comandos e prática de cada item, e um bloco vazio para as anotações. O conteúdo que veio pronto não conta como anotação na regra de conclusão
+- **Minimapa Segurança e confiabilidade de IA:** fundamentos, segurança de aplicações e APIs, avaliar respostas de IA, segurança de sistemas com IA (OWASP para LLM), confiabilidade de agentes, ferramentas, onde praticar e tópicos da trilha ligados (`data/qa/minimapas/ia-seguranca.js`)
+- **Caderno pronto Inglês para QA** (`data/qa/guias/ingles.js`): rotina semanal, vocabulário de QA, falsos amigos, bug report, chat e pull request, daily e refinamento, entrevista, leitura, pronúncia e ferramentas. Entra sozinho uma vez; quem excluir recria em Novo caderno › Guia pronto. Novos guias: um arquivo em `data/qa/guias/` e o `<script>` no index.html
+- Prompts: saem da lista os prompts antigos (versões 0.1 a 0.3) que tinham ficado misturados com os novos, sem versão em inglês. Os que a pessoa editou continuam
+- **Prompts mais simples:** busca, filtros e idioma numa linha só; as 17 categorias viram 6 grupos de assunto; estrela de favorito e filtros Favoritos e Meus prompts; Novo prompt pede só título e texto (o resto fica em Mais opções); um PT/EN só, com aviso quando o prompt não tem inglês; o guia de escrita fica atrás de um botão. Os favoritos entram no backup
 
 **v0.6**
 

@@ -35,7 +35,8 @@ function blockText(b){
   }
   return "";
 }
-const hasContent = p => p.blocos.some(b => blockText(b).trim());
+/* blocos que vieram prontos de um minimapa (b.guia) não contam como anotação sua */
+const hasContent = p => p.blocos.some(b => !b.guia && blockText(b).trim());
 
 /* =====================================================================
    REGRA DE CONCLUSÃO
@@ -143,7 +144,7 @@ function openNew(){
       <label class="checkline"><input type="radio" name="tipo" value="etapa"${minis.length ? "" : " checked"}> Uma etapa da trilha</label>
       <label class="checkline"><input type="radio" name="tipo" value="topico"> Um tópico da trilha</label>
       <label class="checkline"><input type="radio" name="tipo" value="livre"> Assunto livre (curso, livro, ferramenta)</label>
-      ${A.area().conteudo && A.J.IA ? `<label class="checkline"><input type="radio" name="tipo" value="guia"> Guia pronto: IA para ${esc(A.area().nome)}</label>` : ""}
+      ${guias().filter(g => !g.mini).map(g => `<label class="checkline"><input type="radio" name="tipo" value="guia:${esc(g.id)}"> Guia pronto: ${esc(g.t)}</label>`).join("")}
     </fieldset>
     <label data-for="mini"${minis.length ? "" : " hidden"}>Minimapa<select class="in" name="mini">${minis.map(m => `<option value="${esc(m.id)}">${esc(m.t)}</option>`).join("")}</select></label>
     <label data-for="etapa" hidden>Etapa<select class="in" name="etapa">${tr.stages.map(s => `<option value="${esc(s.id)}">${esc(stageLabel(s))}</option>`).join("")}</select></label>
@@ -164,7 +165,7 @@ function openNew(){
     }
     else if(tipo === "etapa"){ const s = tr.stages.find(x => x.id === f.etapa.value); c = {tipo, assunto:stageLabel(s), t:s.name, paginas:A.topicsOf(s).map(t => newPage(t.t, s.name, {k:"topic", id:t.id}))}; }
     else if(tipo === "topico"){ const t = A.findTopic(f.topico.value), s = A.stageIn(t); c = {tipo, assunto:stageLabel(s), t:t.t, paginas:[newPage(t.t, s?.name, {k:"topic", id:t.id})]}; }
-    else if(tipo === "guia") c = fromGuia();
+    else if(tipo.startsWith("guia:")) c = guias().find(g => "guia:" + g.id === tipo)?.build();
     else c = {tipo:"livre", assunto:"", t:"Novo caderno", paginas:[newPage("Primeira página", "")]};
     if(f.t.value.trim()) c.t = f.t.value.trim();
     if(!c.paginas.length) c.paginas.push(newPage("Primeira página", ""));
@@ -172,12 +173,24 @@ function openNew(){
     cads().push(c); save(); closePanel(); go(c, c.paginas[0]); toast("Caderno criado.");
   };
 }
+/* caderno de um minimapa: uma página por item, já com a explicação, os materiais, os comandos e a prática do item;
+ * no fim, um bloco vazio para as suas anotações. Tópicos da trilha entram em branco (as anotações deles são suas). */
+function miniBlocks(it){
+  const g = o => ({id:uid("b"), guia:true, ...o});
+  const out = [];
+  const html = [it.d ? `<p>${esc(it.d)}</p>` : "", it.q ? `<p><b>Quando usar:</b> ${esc(it.q)}</p>` : ""].join("");
+  if(html) out.push(g({k:"texto", html}));
+  (it.l || []).forEach(([t, url, o]) => { if(safeUrl(url)) out.push(g({k:"link", t:o ? `${t} — ${o}` : t, url})); });
+  if(it.lab) out.push(g({k:"code", txt:it.lab}));
+  if(it.x) out.push(g({k:"nota", tipo:"dica", txt:"Pratique: " + it.x}));
+  return [...out, newBlock("texto")];
+}
 function fromMini(m){
   const pages = [];
   m.ramos.forEach((r, i) => { const sec = A.mini.ramoInfo(r, i).t;
     r.itens.forEach(it => {
       if(it.topico){ const t = A.findTopic(it.topico); if(t) pages.push(newPage(t.t, sec, {k:"topic", id:t.id})); }
-      else pages.push(newPage(it.t, sec, {k:"mini", id:it.id, m:m.id}));
+      else pages.push({...newPage(it.t, sec, {k:"mini", id:it.id, m:m.id}), blocos:miniBlocks(it)});
     }); });
   return {tipo:"mini", ref:m.id, assunto:m.t, t:m.t, paginas:pages};
 }
@@ -195,6 +208,8 @@ function fromGuia(){
   const paginas = [
     pg("Comece aqui", "Guia", [txt(`<p>${esc(IA.intro)}</p>`),
       B("nota", {tipo:"dica", txt:"Os prompts prontos para cada tarefa estão na aba Prompts, em Recursos. Este caderno é seu: edite, acrescente o que aprender e anote o que funcionou no seu dia a dia."})]),
+    ...[...new Set((IA.conceitos || []).map(c => c.g))].map(g => pg(`Conceitos: ${g.toLowerCase()}`, "Conceitos de IA",
+      IA.conceitos.filter(c => c.g === g).flatMap(c => [txt(`<h4>${esc(c.t)}</h4><p>${esc(c.d)}</p>`), B("nota", {tipo:"dica", txt:"Para QA: " + c.qa})]))),
     pg("Onde a IA ajuda e onde ter cuidado", "Guia", IA.tarefas.flatMap(t => [
       txt(`<h4>${esc(t.t)}</h4><p>${esc(t.como)}</p>`), B("nota", {tipo:"importante", txt:t.cuidado})])),
     pg("MCP: dando contexto real ao assistente", "MCP", [txt(`<p>${esc(m.oque)}</p>${ul(m.partes.map(x => `<b>${esc(x.t)}:</b> ${esc(x.d)}`), "ol")}`)]),
@@ -210,13 +225,51 @@ function fromGuia(){
   ];
   return {tipo:"guia", ref:"ia", assunto:"IA", t:`IA para ${A.area().nome}`, paginas};
 }
-function seedGuia(){
-  if(!A.area().conteudo || !A.J.IA || store.get("jqa-guia-ia", false)) return;
-  const c = fromGuia(); if(!c) return;
-  cads().push({id:uid("cd"), at:Date.now(), ...c}); save(); store.set("jqa-guia-ia", true);
+/* guias prontos de arquivo (data/qa/guias/): páginas e blocos já escritos, só ganham ids */
+function fromDef(g){
+  const bloco = ({k, ...o}) => k === "check" ? B("check", {items:o.items.map(t => ({t, on:false}))}) : B(k, o);
+  return {tipo:"guia", ref:g.id, assunto:g.assunto || "", t:g.t, paginas:g.paginas.map(pg => ({...newPage(pg.t, pg.sec), blocos:pg.blocos.map(bloco)}))};
 }
-/* o endereço antigo (#ia) abre o guia */
-function openGuia(){ seedGuia(); const c = cads().find(x => x.tipo === "guia"); return c ? c.id : ""; }
+const CADERNOS_DE_MINIMAPA = ["ia-seguranca"];
+/* todos os guias prontos da jornada: IA (montado de data/qa/ia.js) e os de data/qa/guias/ */
+function guias(){
+  if(!A.area().conteudo) return [];
+  const mini = id => (A.C.minis || []).find(m => m.id === id);
+  return [...(A.J.IA ? [{id:"ia", v:2, t:`IA para ${A.area().nome}`, build:fromGuia}] : []),
+    ...(A.J.GUIAS || []).map(g => ({id:g.id, t:g.t, build:() => fromDef(g)})),
+    /* cadernos que já vêm prontos a partir de um minimapa */
+    ...CADERNOS_DE_MINIMAPA.filter(mini).map(id => ({id:"mini-" + id, t:mini(id).t, mini:id, build:() => fromMini(mini(id))}))];
+}
+/* cada guia entra uma vez em cada navegador; quem excluir recria em Novo caderno */
+function seedGuia(){
+  let mudou = false;
+  guias().forEach(g => {
+    if(store.get("jqa-guia-" + g.id, false)){ if(syncGuia(g)) mudou = true; return; }
+    if(g.mini && cads().some(c => c.tipo === "mini" && c.ref === g.mini)){ store.set("jqa-guia-" + g.id, true); return; }
+    const c = g.build(); if(!c) return;
+    cads().push({id:uid("cd"), at:Date.now(), ...c}); store.set("jqa-guia-" + g.id, true); mudou = true;
+  });
+  if(mudou) save();
+}
+/* guia com conteúdo novo (g.v maior que o já visto): acrescenta as páginas que faltam, no lugar delas; o resto fica como a pessoa deixou */
+function syncGuia(g){
+  const vk = "jqa-guia-" + g.id + "-v", visto = store.get(vk, 1);
+  if(!g.v || visto >= g.v) return false;
+  store.set(vk, g.v);
+  const c = cads().find(x => x.tipo === "guia" && (x.ref || "ia") === g.id); if(!c) return false;
+  const novo = g.build(); if(!novo) return false;
+  const tem = new Set(c.paginas.map(p => p.t)); let add = 0;
+  novo.paginas.forEach((p, i) => {
+    if(tem.has(p.t)) return;
+    const antes = novo.paginas.slice(0, i).reverse().find(x => tem.has(x.t));
+    const pos = antes ? c.paginas.findIndex(x => x.t === antes.t) + 1 : 0;
+    c.paginas.splice(pos, 0, p); tem.add(p.t); add++;
+  });
+  if(add) touch(c);
+  return add > 0;
+}
+/* o endereço antigo (#ia) abre o guia de IA */
+function openGuia(){ seedGuia(); const c = cads().find(x => x.tipo === "guia" && (x.ref || "ia") === "ia"); return c ? c.id : ""; }
 seedGuia();
 /* "Anotar no caderno" a partir de um tópico ou item: abre a página que já existe ou cria uma */
 function noteFor(k, id){
